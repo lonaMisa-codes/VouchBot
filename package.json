@@ -1,0 +1,16 @@
+{
+  "name": "donut-vouch-bot",
+  "version": "1.0.0",
+  "description": "Vouch and scam-vouch bot for a DonutSMP trader",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.4.5"
+  }
+}
