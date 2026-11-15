@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const config = require('../config');
 const { ownerOnly } = require('../owner');
 const { publish } = require('../post');
 const { parsePrice, money } = require('../utils');
@@ -22,6 +23,7 @@ module.exports = {
       fields: [{ name: 'Giveaway', value: value ? money(value) : raw, inline: true }],
       vouch: i.options.getAttachment('vouch'),
       proof: i.options.getAttachment('proof'),
+      categoryId: config.channels.giveaway,
       record: { kind: 'giveaway', value },
     });
   },

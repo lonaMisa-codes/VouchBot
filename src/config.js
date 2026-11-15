@@ -15,6 +15,7 @@ module.exports = {
     all: process.env.ALL_VOUCHES_CHANNEL_ID || null,
     spawner: process.env.SPAWNER_VOUCHES_CHANNEL_ID || null,
     build: process.env.BUILD_VOUCHES_CHANNEL_ID || null,
+    giveaway: process.env.GIVEAWAY_VOUCHES_CHANNEL_ID || null,
   },
   SPAWNERS,
   COLORS: { vouch: 0x2ecc71, scam: 0xe74c3c, info: 0x5865f2, gold: 0xf1c40f },

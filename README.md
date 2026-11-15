@@ -35,6 +35,7 @@ All settings live in `.env`.
 | `ALL_VOUCHES_CHANNEL_ID` | Yes | Every vouch is posted here |
 | `SPAWNER_VOUCHES_CHANNEL_ID` | No | Spawner vouches are also copied here |
 | `BUILD_VOUCHES_CHANNEL_ID` | No | Build vouches are also copied here |
+| `GIVEAWAY_VOUCHES_CHANNEL_ID` | No | Giveaway vouches are also copied here |
 | `COMMAND_ROLE_ID` | No | One role that is on par with the owner: it can use every owner command and all ticket controls, and is pinged and given access in new tickets |
 | `MESSAGE_CONTENT_INTENT` | No | Set to `true` only after enabling the Message Content Intent. Needed just for some `/purge` filters |
 | `TICKET_CATEGORY_ID` | No | Category where ticket channels are created |
@@ -115,7 +116,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 
 ## Vouch cards
 
-Each vouch is **one card** with the title, a counter line. The all-vouches channel shows `Build - 12  •  Total - 140` (category number and overall number); the spawner / build channels show only the category number, like `Build - 12`, the trade details, the vouch picture (**Proof of vouch**) and the proof picture.
+Each vouch is **one card** with the title, a counter line. The all-vouches channel shows `Build - 12  •  Total - 140` (category number and overall number); the spawner / build / giveaway channels show only the category number, like `Build - 12`, the trade details, the vouch picture (**Proof of vouch**) and the proof picture.
 
 ## Vouch channels
 
@@ -125,7 +126,7 @@ Every vouch goes to the all-vouches channel first.
 |---|---|
 | Spawner | Spawner channel |
 | Build | Build channel |
-| Giveaway | all-vouches only |
+| Giveaway | Giveaway channel |
 
 ---
 
