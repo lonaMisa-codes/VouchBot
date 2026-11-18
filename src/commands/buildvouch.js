@@ -29,7 +29,6 @@ module.exports = {
     const side = i.options.getString('trade');
     const schemAttachment = i.options.getAttachment('schem');
 
-    // Optional validation for .litematic
     if (schemAttachment) {
       const name = schemAttachment.name?.toLowerCase() || '';
       if (!name.endsWith('.litematic')) {
