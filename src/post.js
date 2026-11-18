@@ -82,9 +82,11 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
       .addSeparatorComponents(gap())
       .addTextDisplayComponents(text('**Proof of vouch**'))
       .addMediaGalleryComponents(picture(files[0]));
+      
     if (files[1] && proof) {
       card.addTextDisplayComponents(text(`**${proofTitle}**`)).addMediaGalleryComponents(picture(files[1]));
     }
+    
     card.addTextDisplayComponents(text(`-# <t:${Math.floor(Date.now() / 1000)}:F>`));
     return { components: [card], files, flags: MessageFlags.IsComponentsV2 };
   };
