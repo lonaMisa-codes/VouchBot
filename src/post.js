@@ -27,13 +27,14 @@ const KIND_LABEL = { spawner: 'Spawner', build: 'Build', giveaway: 'Giveaway' };
 
 /**
  * Posts a vouch as ONE card (Components V2): title, vouch number + total number, details,
- * the vouch picture, then the proof picture. Sent to the all-vouches channel and, if given,
+ * the vouch picture, then the proof picture (if one was given). Sent to the all-vouches channel and, if given,
  * the category channel. The interaction must already be deferred (ephemeral).
  * `record` is stored for /summary.
  */
 async function publish(interaction, { title, fields, proofTitle = 'Proof of trade', vouch, proof, categoryId, record }) {
-  if (![vouch, proof].every((a) => a.contentType?.startsWith('image/'))) {
-    return interaction.editReply('Both the vouch and the proof must be images (png, jpg, webp).');
+  // The vouch picture is required; the proof picture is optional
+  if (![vouch, proof].filter(Boolean).every((a) => a.contentType?.startsWith('image/'))) {
+    return interaction.editReply('The vouch and the proof must be images (png, jpg, webp).');
   }
 
   const all = await resolveChannel(interaction.client, config.channels.all, interaction.channel);
@@ -48,7 +49,7 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
 
   let files;
   try {
-    files = [await toFile(vouch, 'vouch'), await toFile(proof, 'proof')];
+    files = [await toFile(vouch, 'vouch'), ...(proof ? [await toFile(proof, 'proof')] : [])];
   } catch (err) {
     console.error(err);
     return interaction.editReply('Could not download the images. Please try again.');
@@ -76,10 +77,11 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
       .addTextDisplayComponents(text(fields.map((f) => `**${f.name}:** ${f.value}`).join('\n')))
       .addSeparatorComponents(gap())
       .addTextDisplayComponents(text('**Proof of vouch**'))
-      .addMediaGalleryComponents(picture(files[0]))
-      .addTextDisplayComponents(text(`**${proofTitle}**`))
-      .addMediaGalleryComponents(picture(files[1]))
-      .addTextDisplayComponents(text(`-# <t:${Math.floor(Date.now() / 1000)}:F>`));
+      .addMediaGalleryComponents(picture(files[0]));
+    if (files[1]) {
+      card.addTextDisplayComponents(text(`**${proofTitle}**`)).addMediaGalleryComponents(picture(files[1]));
+    }
+    card.addTextDisplayComponents(text(`-# <t:${Math.floor(Date.now() / 1000)}:F>`));
     return { components: [card], files, flags: MessageFlags.IsComponentsV2 };
   };
 

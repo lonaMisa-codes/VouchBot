@@ -15,7 +15,7 @@ module.exports = {
     .addStringOption((o) => o.setName('value').setDescription('Total trade value, e.g. 3.44b, 250m').setRequired(true))
     .addIntegerOption((o) => o.setName('amount').setDescription('How many spawners').setRequired(true).setMinValue(1).setMaxValue(1000000))
     .addAttachmentOption((o) => o.setName('vouch').setDescription('Picture of the vouch').setRequired(true))
-    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of the trade / transaction').setRequired(true)),
+    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of the trade / transaction (optional)').setRequired(false)),
 
   async execute(i) {
     if (!(await ownerOnly(i))) return;

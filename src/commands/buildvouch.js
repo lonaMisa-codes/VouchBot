@@ -12,7 +12,7 @@ module.exports = {
       .addChoices({ name: 'Customer bought from me', value: 'buy' }, { name: 'Customer sold to me', value: 'sell' }))
     .addStringOption((o) => o.setName('value').setDescription('Total trade value, e.g. 3.44b, 250m').setRequired(true))
     .addAttachmentOption((o) => o.setName('vouch').setDescription('Picture of the vouch').setRequired(true))
-    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of the trade / transaction').setRequired(true))
+    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of the trade / transaction (optional)').setRequired(false))
     .addStringOption((o) => o.setName('schem').setDescription('Schematic / build name (optional)').setMaxLength(100)),
 
   async execute(i) {

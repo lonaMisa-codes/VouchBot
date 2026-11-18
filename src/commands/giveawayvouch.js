@@ -10,7 +10,7 @@ module.exports = {
     .setDescription('Owner: post a giveaway vouch')
     .addStringOption((o) => o.setName('amount').setDescription('How much the giveaway was, e.g. 5m').setRequired(true).setMaxLength(50))
     .addAttachmentOption((o) => o.setName('vouch').setDescription('Picture of the winner\'s vouch').setRequired(true))
-    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of paying the winner').setRequired(true)),
+    .addAttachmentOption((o) => o.setName('proof').setDescription('Proof of paying the winner (optional)').setRequired(false)),
 
   async execute(i) {
     if (!(await ownerOnly(i))) return;

@@ -62,9 +62,9 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/spawnerprice` | Owner | `buy`, `sell` (both optional after first use) | Sets the Skeleton spawner prices and updates the price panel. Change one or both. The first time, give both. If no panel exists, one is posted in the current channel |
 | `/spawnerbuy` | Anyone | `amount` | Total cost to **buy** spawners from me at the current price |
 | `/spawnersell` | Anyone | `amount` | How much you **earn** selling spawners to me at the current price |
-| `/spawnervouch` | Owner | `trade`, `value`, `amount`, `vouch` (image), `proof` (image) | Posts a spawner vouch |
-| `/buildvouch` | Owner | `trade`, `value`, `vouch`, `proof`, optional `schem` | Posts a build / base vouch. `schem` is the build name |
-| `/giveawayvouch` | Owner | `amount`, `vouch`, `proof` | Posts a giveaway vouch. `proof` shows the winner being paid |
+| `/spawnervouch` | Owner | `trade`, `value`, `amount`, `vouch` (image), optional `proof` (image) | Posts a spawner vouch |
+| `/buildvouch` | Owner | `trade`, `value`, `vouch`, optional `proof`, optional `schem` | Posts a build / base vouch. `schem` is the build name |
+| `/giveawayvouch` | Owner | `amount`, `vouch`, optional `proof` | Posts a giveaway vouch. `proof` shows the winner being paid |
 | `/summary` | Owner | none | Posts the live summary panel (sections: overview, spawners, builds, giveaways, each with recent transactions). Only one exists at a time, and posting a new one removes the old one |
 | `/purge` | Owner | `amount` (1-100), optional `user`, `filter`, `contains`, `scan`, `include_pinned` | Finds matching messages in the current channel, shows a confirmation with the exact count, and deletes them only after you press **Delete** (30 s timeout, **Cancel** to abort). Pinned messages are skipped unless `include_pinned` is on. Discord can't bulk delete messages older than 14 days, so those are skipped. The `contains`, `links`, `attachments` and `embeds` filters need the Message Content Intent |
 | `/close` | Owner | optional `reason` | Closes the ticket you are in. With a reason it posts the reason first (same as the Close / Close with Reason buttons) |
@@ -76,7 +76,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 **Notes**
 
 - `trade` is either *Customer bought from me* or *Customer sold to me*.
-- `proof` is mandatory on every vouch command. It is labelled **Proof of base** on builds, **Proof of trade** on spawners and **Proof of payment** on giveaways. The vouch picture is labelled **Proof of vouch**.
+- `proof` is optional on every vouch command. If you leave it out, the card shows only the vouch picture. When given, it is labelled **Proof of base** on builds, **Proof of trade** on spawners and **Proof of payment** on giveaways. The vouch picture is labelled **Proof of vouch**.
 - Prices and values accept `16.2m`, `16200000`, `3.44b`, `1t`, `$3,000`. Units: `k`, `m`, `b`, `t`.
 - Numbers are displayed like `(16.2m) 16,200,000`. Spawner amounts also show stacks, for example `105 = 1 stack + 41`.
 - `giveawayvouch` `amount` can also be free text. If it can't be read as a number it is shown as typed.
