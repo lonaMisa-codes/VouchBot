@@ -20,7 +20,7 @@ async function toFile(att, name) {
   const res = await fetch(att.url);
   if (!res.ok) throw new Error(`download failed (${res.status})`);
   const ext = (att.name?.match(/\.[a-z0-9]+$/i) ?? ['.png'])[0];
-  return new AttachmentBuilder(Buffer.from(await res.arrayBuffer()), { name: `${name}${ext}` });
+  return new AttachmentBuilder(Buffer.from(await res.arrayBuffer()), { name: `\( {name} \){ext}` });
 }
 
 const KIND_LABEL = { spawner: 'Spawner', build: 'Build', giveaway: 'Giveaway' };
@@ -31,7 +31,7 @@ const KIND_LABEL = { spawner: 'Spawner', build: 'Build', giveaway: 'Giveaway' };
  * the category channel. The interaction must already be deferred (ephemeral).
  * `record` is stored for /summary.
  */
-async function publish(interaction, { title, fields, proofTitle = 'Proof of trade', vouch, proof, categoryId, record }) {
+async function publish(interaction, { title, fields, proofTitle = 'Proof of trade', vouch, proof, schem, categoryId, record }) {
   // The vouch picture is required; the proof picture is optional
   if (![vouch, proof].filter(Boolean).every((a) => a.contentType?.startsWith('image/'))) {
     return interaction.editReply('The vouch and the proof must be images (png, jpg, webp).');
@@ -49,10 +49,14 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
 
   let files;
   try {
-    files = [await toFile(vouch, 'vouch'), ...(proof ? [await toFile(proof, 'proof')] : [])];
+    files = [
+      await toFile(vouch, 'vouch'),
+      ...(proof ? [await toFile(proof, 'proof')] : []),
+      ...(schem ? [await toFile(schem, 'schematic')] : [])
+    ];
   } catch (err) {
     console.error(err);
-    return interaction.editReply('Could not download the images. Please try again.');
+    return interaction.editReply('Could not download the files. Please try again.');
   }
 
   // Counters include this vouch: "Build - 12 | Total - 140"
@@ -71,14 +75,14 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
       .setAccentColor(color)
       .addTextDisplayComponents(
         text(`# ${title}`),
-        text(`## ${KIND_LABEL[record.kind]} - ${kindNo}${withTotal ? `  •  Total - ${totalNo}` : ''}`),
+        text(`## ${KIND_LABEL[record.kind]} - \( {kindNo} \){withTotal ? `  •  Total - ${totalNo}` : ''}`),
       )
       .addSeparatorComponents(gap())
       .addTextDisplayComponents(text(fields.map((f) => `**${f.name}:** ${f.value}`).join('\n')))
       .addSeparatorComponents(gap())
       .addTextDisplayComponents(text('**Proof of vouch**'))
       .addMediaGalleryComponents(picture(files[0]));
-    if (files[1]) {
+    if (files[1] && proof) {
       card.addTextDisplayComponents(text(`**${proofTitle}**`)).addMediaGalleryComponents(picture(files[1]));
     }
     card.addTextDisplayComponents(text(`-# <t:${Math.floor(Date.now() / 1000)}:F>`));
