@@ -105,26 +105,21 @@ async function fail(message, text) {
 
 const MENTION = /<@!?(\d+)>/g;
 const TAG = /^[A-Za-z]{1,3}\d{1,6}$/;
+const LINK = /discord(?:app)?\.com\/channels\/\d+\/(\d+)\/(\d+)/g;
 const posts = () => store.getMeta('schemPosts') ?? {};
+const isLitematic = (f) => /\.litematic$/i.test(f.name ?? '');
 
-async function run(message) {
-  if (!enabled || message.author.bot || !message.guild || message.attachments.size === 0) return;
-  const where = prefixOf(message.channelId);
-  if (!where || !canPost(message)) return;
-  const { kind, prefix } = where;
+// Builds and sends one schematic post in `channel`. atts = Discord attachments.
+// Returns { ok: false, reason } or { ok: true, tag, url }. Always call through enqueue().
+async function createPost(channel, { kind, prefix, atts, name, owners }) {
   const booster = kind === 'booster';
-
-  const atts = [...message.attachments.values()];
   const images = atts.filter(isImage);
   const schems = atts.filter((a) => !isImage(a));
-  if (booster && !images.length) return fail(message, 'No pictures found. Attach the pictures (and the schematic file for the size).');
-  if (!booster && !schems.length) return fail(message, 'No schematic file found. Attach the schematic file together with the pictures.');
+  if (booster && !images.length) return { ok: false, reason: 'No pictures found. Attach the pictures (and the schematic file for the size).' };
+  if (!booster && !schems.length) return { ok: false, reason: 'No schematic file found. Attach the schematic file together with the pictures.' };
 
-  // Credit: whoever you @mention, otherwise the bot owner
-  const mentioned = [...new Set([...message.content.matchAll(MENTION)].map((m) => `<@${m[1]}>`))].slice(0, 10);
-  const owners = mentioned.length ? mentioned : [config.targetId ? `<@${config.targetId}>` : 'Unknown'];
-  const firstLine = message.content.replace(MENTION, '').split('\n').map((l) => l.trim()).find(Boolean) ?? '';
-  const name = firstLine.slice(0, 100) || (schems[0] ? cleanName(schems[0].name) : 'Build');
+  // The build name is the one you gave, otherwise the schematic's file name
+  const buildName = (name || (schems[0] ? cleanName(schems[0].name) : 'Build')).slice(0, 100);
 
   const counters = store.getMeta('schemCounters') ?? {};
   const all = posts();
@@ -139,25 +134,63 @@ async function run(message) {
     schemFiles = await Promise.all(schems.map((a) => toFile(a, 'schematic', true)));
   } catch (err) {
     console.error(err);
-    return fail(message, 'Could not download the files. Please try again.');
+    return { ok: false, reason: 'Could not download the files. Please try again.' };
   }
 
-  // The size comes from the schematic file(s). Booster posts read it but never re-post the file.
-  const size = schemFiles.length ? schemFiles.map((f) => describeSize(f.attachment)).join(' | ') : 'Unknown';
+  // The size comes from the .litematic file(s). Booster posts read it but never re-post the file.
+  const lit = schemFiles.filter(isLitematic);
+  const size = lit.length ? lit.map((f) => describeSize(f.attachment)).join(' | ') : 'Unknown';
   const files = booster ? imageFiles : [...imageFiles, ...schemFiles];
 
   let sent;
   try {
     // No pings: people you mention were already pinged by your message
-    sent = await message.channel.send({ content: buildText({ name, tag, owners, size, booster }), files, allowedMentions: { parse: [] } });
+    sent = await channel.send({ content: buildText({ name: buildName, tag, owners, size, booster }), files, allowedMentions: { parse: [] } });
   } catch (err) {
     console.error(err);
-    return fail(message, 'Could not post it. I need Send Messages and Attach Files here (and the files must fit the upload limit).');
+    return { ok: false, reason: 'Could not post it. I need Send Messages and Attach Files here (and the files must fit the upload limit).' };
   }
 
   store.setMeta('schemCounters', { ...counters, [prefix]: number });
-  store.setMeta('schemPosts', { ...all, [tag]: { c: message.channelId, m: sent.id, n: name, o: owners, s: size, b: booster ? 1 : 0 } });
+  store.setMeta('schemPosts', { ...all, [tag]: { c: channel.id, m: sent.id, n: buildName, o: owners, s: size, b: booster ? 1 : 0 } });
+  return { ok: true, tag, url: sent.url };
+}
+
+async function run(message) {
+  if (!enabled || message.author.bot || !message.guild || message.attachments.size === 0) return;
+  const where = prefixOf(message.channelId);
+  if (!where || !canPost(message)) return;
+
+  // Credit: whoever you @mention, otherwise the bot owner
+  const mentioned = [...new Set([...message.content.matchAll(MENTION)].map((m) => `<@${m[1]}>`))].slice(0, 10);
+  const owners = mentioned.length ? mentioned : [config.targetId ? `<@${config.targetId}>` : 'Unknown'];
+  const firstLine = message.content.replace(MENTION, '').split('\n').map((l) => l.trim()).find(Boolean) ?? '';
+
+  const r = await createPost(message.channel, { kind: where.kind, prefix: where.prefix, atts: [...message.attachments.values()], name: firstLine, owners });
+  if (!r.ok) return fail(message, r.reason);
   await message.delete().catch(() => console.warn('Could not delete your message. Give the bot Manage Messages in the schematic channel.'));
+}
+
+// /schematicforward: re-post message(s) from any channel the bot can read (also other servers it is in).
+// Build name = the schematic file name. Creator = the original author, unless you give one.
+async function forwardLinks(interaction, text, { creator, name } = {}) {
+  const where = prefixOf(interaction.channelId);
+  if (!where) return 'Run this inside a schematic or booster channel (add one with `/schematicchannel add` or `/boosterchannel add`).';
+  if (!enabled) return 'Turn on `MESSAGE_CONTENT_INTENT=true` first (and the intent in the Developer Portal), then restart the bot. It is needed to read the files of other messages.';
+  const links = [...text.matchAll(LINK)].slice(0, 10);
+  if (!links.length) return 'I could not find a message link. Right-click the message, choose Copy Message Link and paste it. You can paste several.';
+
+  const lines = [];
+  for (const [, channelId, messageId] of links) {
+    const msg = await interaction.client.channels.fetch(channelId).then((c) => c.messages.fetch(messageId)).catch(() => null);
+    if (!msg) { lines.push(`❌ \`${messageId}\`: I cannot read that message. The bot must be in that server and be able to see the channel.`); continue; }
+    if (!msg.attachments.size) { lines.push(`❌ \`${messageId}\`: that message has no files.`); continue; }
+    const owners = creator ? parseOwnersText(creator, interaction.guild) : [`<@${msg.author.id}>`];
+    if (!owners.length) { lines.push('❌ I could not read the creator. Mention someone or type their name.'); break; }
+    const r = await enqueue(() => createPost(interaction.channel, { kind: where.kind, prefix: where.prefix, atts: [...msg.attachments.values()], name, owners }));
+    lines.push(r.ok ? `✅ \`${r.tag}\`: ${r.url}` : `❌ \`${messageId}\`: ${r.reason}`);
+  }
+  return lines.join('\n');
 }
 
 // Edit a post made earlier. changes: { name, creator, number, size } (all optional).
@@ -192,16 +225,18 @@ async function editPost(client, guild, tagInput, changes) {
     return { ok: false, reason: 'I could not edit that message.' };
   }
 
-  const { [tag]: _old, ...rest } = all;
+  const { [tag]: _old, ...rest } = posts(); // re-read: a new post may have been saved while editing
   store.setMeta('schemPosts', { ...rest, [newTag]: next });
   return { ok: true, tag: newTag, url: msg.url };
 }
 
 // One at a time, so two quick posts never get the same number
 let chain = Promise.resolve();
-function handle(message) {
-  chain = chain.then(() => run(message)).catch((err) => console.error('Schematic post failed:', err));
-  return chain;
+function enqueue(fn) {
+  const result = chain.then(fn);
+  chain = result.catch((err) => console.error('Schematic post failed:', err));
+  return result;
 }
+const handle = (message) => enqueue(() => run(message)).catch(() => {});
 
-module.exports = { handle, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost };
+module.exports = { handle, forwardLinks, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost };
