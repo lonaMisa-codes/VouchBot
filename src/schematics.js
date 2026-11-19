@@ -107,7 +107,6 @@ async function fail(message, text) {
 
 const MENTION = /<@!?(\d+)>/g;
 const TAG = /^[A-Za-z]{1,3}\d{1,6}$/;
-const LINK = /discord(?:app)?\.com\/channels\/\d+\/(\d+)\/(\d+)/g;
 const posts = () => store.getMeta('schemPosts') ?? {};
 // Attachments of a message, including those inside a forwarded message (Discord's Forward button)
 const attachmentsOf = (m) => [
@@ -212,29 +211,6 @@ async function run(message) {
   await message.delete().catch(() => console.warn('Could not delete your message. Give the bot Manage Messages in the schematic channel.'));
 }
 
-// /schematicforward: re-post message(s) from any channel the bot can read (also other servers it is in).
-// Build name = the schematic file name. Creator = the original author, unless you give one.
-async function forwardLinks(interaction, text, { creator, name } = {}) {
-  const where = prefixOf(interaction.channelId);
-  if (!where) return 'Run this inside a schematic or booster channel (add one with `/schematicchannel add` or `/boosterchannel add`).';
-  if (!enabled) return 'Turn on `MESSAGE_CONTENT_INTENT=true` first (and the intent in the Developer Portal), then restart the bot. It is needed to read the files of other messages.';
-  const links = [...text.matchAll(LINK)].slice(0, 10);
-  if (!links.length) return 'I could not find a message link. Right-click the message, choose Copy Message Link and paste it. You can paste several.';
-
-  const lines = [];
-  for (const [, channelId, messageId] of links) {
-    const msg = await interaction.client.channels.fetch(channelId).then((c) => c.messages.fetch(messageId)).catch(() => null);
-    if (!msg) { lines.push(`❌ \`${messageId}\`: I cannot read that message. The bot must be in that server and be able to see the channel.`); continue; }
-    const atts = attachmentsOf(msg);
-    if (!atts.length) { lines.push(`❌ \`${messageId}\`: that message has no files.`); continue; }
-    const owners = creator ? parseOwnersText(creator, interaction.guild) : [`<@${msg.author.id}>`];
-    if (!owners.length) { lines.push('❌ I could not read the creator. Mention someone or type their name.'); break; }
-    const r = await enqueue(() => createPost(interaction.channel, { kind: where.kind, prefix: where.prefix, atts, name, owners }));
-    lines.push(r.ok ? `✅ \`${r.tag}\`: ${r.url}` : `❌ \`${messageId}\`: ${r.reason}`);
-  }
-  return lines.join('\n');
-}
-
 // Edit a post made earlier. changes: { name, creator, number, size } (all optional).
 async function editPost(client, guild, tagInput, changes) {
   const tag = tagInput.trim().toUpperCase();
@@ -281,4 +257,4 @@ function enqueue(fn) {
 }
 const handle = (message) => enqueue(() => run(message)).catch(() => {});
 
-module.exports = { handle, forwardLinks, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost };
+module.exports = { handle, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost };

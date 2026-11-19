@@ -74,7 +74,6 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/schematicchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the schematic posting channels. See [Schematic posting](#schematic-posting) |
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
 | `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
-| `/schematicforward` | Owner | `link`, optional `creator`, `name` | Re-posts message(s) by link as a schematic post. See [Schematic posting](#schematic-posting) |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
 
 **Notes**
@@ -234,13 +233,6 @@ No reply is needed. If the files are missing, the bot tells you for 15 seconds.
 - **reply to the bot's post** with the name, at any time.
 
 The bot renames the post and deletes your message. `@mentions` in that message change the creator. Because of the 90-second window, a normal chat message you type right after posting is treated as the name.
-
-**Forwarding other messages:** `/schematicforward link:<message link>` (run it inside a schematic or booster channel). Right-click any message, choose Copy Message Link and paste it. You can paste several links at once (up to 10). The bot copies that message's pictures, schematic file and other attachments into a normal post in your format:
-- **Name:** the schematic's file name (for example `Cool_Tower.litematic` becomes `Cool Tower`), unless you give `name`.
-- **Number:** counted like any other post (`B5`, `BB2`...).
-- **Creator:** the original author of that message, unless you give `creator` (a mention or typed names).
-- Only attachments are copied (not the message text, embeds or stickers).
-- The bot can only read messages in servers **it is in** (and channels it can see). For a message in another server, the bot has to be added to that server first. It also needs Message Content Intent on.
 
 **Editing a post later:** `/schematicedit build:B3` plus any of `name`, `creator` (mention or typed names, separated by comma or `&`), `number` (for example `B12`) and `size`. The bot edits its own post and keeps the pictures and file. A number that is already used is refused, and new posts never reuse a number you set by hand. Only posts made after this feature was added can be edited.
 
