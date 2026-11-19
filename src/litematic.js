@@ -61,10 +61,10 @@ function readSize(fileBuffer) {
   return null;
 }
 
-// "120 x 64 x 97", or "Unknown" when the dimensions can't be read (not a litematic, damaged)
+// "120 x 64 x 97 = 744,960" (the number is x * y * z), or "Unknown" when the dimensions can't be read
 function describeSize(fileBuffer) {
-  const dims = readSize(fileBuffer);
-  return dims ? `${dims.x} x ${dims.y} x ${dims.z}` : 'Unknown';
+  const d = readSize(fileBuffer);
+  return d ? `${d.x} x ${d.y} x ${d.z} = ${(d.x * d.y * d.z).toLocaleString('en-US')}` : 'Unknown';
 }
 
 module.exports = { readSize, describeSize };

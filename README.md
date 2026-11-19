@@ -238,6 +238,6 @@ No reply is needed. If the files are missing, the bot tells you for 15 seconds.
 
 **Storage:** The bot saves only a tiny text record per post (about 80 bytes: message ID, name, creator, size) in `data/vouches.json`. The pictures and files stay in the Discord message and are never stored by the bot. Keep the `data/` folder when updating.
 
-**Size line:** For a `.litematic` file the bot reads the build dimensions and shows `120 x 64 x 97`. If it can't read them (other file type or damaged file) it shows `Unknown`; you can fix it with `/schematicedit`. The file size is not shown.
+**Size line:** For a `.litematic` file the bot reads the build dimensions and shows them with the total, like `120 x 64 x 97 = 744,960` (x times y times z). If it can't read them (other file type or damaged file) it shows `Unknown`; you can fix it with `/schematicedit`. The file size is not shown.
 
 **Look of the post:** warning line, the build name between hammer emojis, the brand line, `BUILD NUMBER`, `Size`, the notice and `Original Creator`. Change the brand lines with `SCHEMATIC_BRAND` and `SCHEMATIC_BOOSTER_BRAND`. The three custom emojis can be replaced with `SCHEMATIC_EMOJI_WARN`, `SCHEMATIC_EMOJI_BUILD` and `SCHEMATIC_EMOJI_BRAND` (format `<:name:id>`). They only show if the bot is in the server that owns the emoji and has **Use External Emojis** where it posts.
