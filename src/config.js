@@ -22,6 +22,8 @@ module.exports = {
   messageContent: process.env.MESSAGE_CONTENT_INTENT === 'true',
   schematic: {
     brand: process.env.SCHEMATIC_BRAND || "Tomberzz's Schematics",
+    // Invite link for the booster text. Shown as a clickable "TobVi Discord Server" link with no invite panel.
+    boostLink: /^https:\/\/\S+$/.test(process.env.SCHEMATIC_BOOST_LINK ?? '') ? process.env.SCHEMATIC_BOOST_LINK : null,
     boosterBrand: process.env.SCHEMATIC_BOOSTER_BRAND || "Tomberzz's Booster Schematics",
     channels: parseChannelTags(process.env.SCHEMATIC_CHANNELS),
     boosterChannels: parseChannelTags(process.env.SCHEMATIC_BOOSTER_CHANNELS),

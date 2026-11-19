@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const config = require('./config');
 const store = require('./store');
 const { toFile } = require('./post');
@@ -17,7 +18,11 @@ const { describeSize } = require('./litematic');
 
 const E = config.schematic.emojis;
 const WARNING = 'Taking this schematic and reposting it in your own server without credit or permission will result in removal of access, scammer roles across partnered servers, and possible blacklist.';
-const BOOSTER_NOTE = "To access any of these booster schematics, you will need to boost TobVi, as it's the only way to get them.";
+// The link is wrapped in <> so Discord does not show an invite panel under the post
+const boosterNote = () => {
+  const where = config.schematic.boostLink ? `[TobVi Discord Server](<${config.schematic.boostLink}>)` : 'the TobVi Discord Server';
+  return `To access any of these booster schematics, you will need to boost ${where}, as it's the only way to get them.`;
+};
 
 const KINDS = {
   posting: { key: 'schemChannels', env: () => config.schematic.channels },
@@ -95,7 +100,7 @@ function buildText({ name, tag, owners, size, booster = false }) {
     '',
     `__***BUILD NUMBER: ${tag}***__`,
     `_**Size =**_ ${size}`,
-    `*${booster ? BOOSTER_NOTE : WARNING}*`,
+    `*${booster ? boosterNote() : WARNING}*`,
     ` Original Creator: ${owners.join(' & ')}`,
   ].join('\n');
 }
@@ -154,7 +159,7 @@ async function createPost(channel, { kind, prefix, atts, name, owners }) {
   let sent;
   try {
     // No pings: people you mention were already pinged by your message
-    sent = await channel.send({ content: buildText({ name: buildName, tag, owners, size, booster }), files, allowedMentions: { parse: [] } });
+    sent = await channel.send({ content: buildText({ name: buildName, tag, owners, size, booster }), files, allowedMentions: { parse: [] }, flags: MessageFlags.SuppressEmbeds });
   } catch (err) {
     console.error(err);
     return { ok: false, reason: 'Could not post it. I need Send Messages and Attach Files here (and the files must fit the upload limit).' };
@@ -237,7 +242,7 @@ async function editPost(client, guild, tagInput, changes) {
   const msg = await client.channels.fetch(rec.c).then((c) => c.messages.fetch(rec.m)).catch(() => null);
   if (!msg) return { ok: false, reason: 'That post no longer exists (it was deleted), so it cannot be edited.' };
   try {
-    await msg.edit({ content: buildText({ name: next.n, tag: newTag, owners: next.o, size: next.s, booster: !!next.b }), allowedMentions: { parse: [] } });
+    await msg.edit({ content: buildText({ name: next.n, tag: newTag, owners: next.o, size: next.s, booster: !!next.b }), allowedMentions: { parse: [] }, flags: MessageFlags.SuppressEmbeds });
   } catch (err) {
     console.error(err);
     return { ok: false, reason: 'I could not edit that message.' };
