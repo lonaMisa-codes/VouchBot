@@ -201,3 +201,12 @@ src/
   utils.js          price parsing and number formatting
   commands/         one file per slash command (includes ticket.js, close.js and purge.js)
 ```
+
+## Schematic posting
+Set `SCHEMATIC_CHANNELS` (for example `111111111111111111=G,222222222222222222=S`) and turn on `MESSAGE_CONTENT_INTENT` (also enable **Message Content Intent** in the Developer Portal, Bot tab). The bot needs Send Messages, Attach Files and Manage Messages in those channels.
+
+1. In a schematic channel, send ONE message with the pictures and the schematic file. Text you add on the first line is used as the build name; without it the file name is used.
+2. Reply to that message with the owner(s): mention them or type their names. For several, separate with a comma, `&` or `and`.
+3. The bot posts the pictures, the file and the info text (DO NOT SHARE warning, build name, `BUILD NUMBER`, `Original Creator`) as one message and deletes your two messages. The owners are not pinged again.
+
+The build number is the channel's letter plus a counter (`G1`, `G2`, `S1`...). Only the owner or `COMMAND_ROLE_ID` can post. Change the brand line with `SCHEMATIC_BRAND`.

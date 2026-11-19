@@ -117,4 +117,4 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
   return interaction.editReply(`Posted: ${sent[0].url}`);
 }
 
-module.exports = { publish };
+module.exports = { publish, toFile };

@@ -5,6 +5,7 @@ const config = require('./config');
 const tickets = require('./tickets');
 const store = require('./store');
 const summaryboard = require('./summaryboard');
+const schematics = require('./schematics');
 
 // Log errors instead of letting the bot crash
 process.on('unhandledRejection', (err) => console.error('Unhandled rejection:', err));
@@ -25,11 +26,13 @@ for (const file of fs.readdirSync(path.join(__dirname, 'commands')).filter((f) =
   for (const cmd of [].concat(require(`./commands/${file}`))) commands.set(cmd.data.name, cmd);
 }
 
-// Only the Guilds intent is needed. Message Content is optional and only used by /purge text filters.
+// Only the Guilds intent is needed. Message Content is optional: it is used by the /purge text filters
+// and by schematic posting (reading your reply and the attachments).
 const intents = [GatewayIntentBits.Guilds];
-if (config.messageContent) intents.push(GatewayIntentBits.MessageContent);
+if (config.messageContent) intents.push(GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent);
 const client = new Client({ intents });
 client.on(Events.Error, (err) => console.error('Client error:', err));
+client.on(Events.MessageCreate, (message) => schematics.handle(message));
 
 client.once(Events.ClientReady, async (c) => {
   console.log(`Online as ${c.user.tag}`);
