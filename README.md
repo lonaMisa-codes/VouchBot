@@ -63,7 +63,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/spawnerbuy` | Anyone | `amount` | Total cost to **buy** spawners from me at the current price |
 | `/spawnersell` | Anyone | `amount` | How much you **earn** selling spawners to me at the current price |
 | `/spawnervouch` | Owner | `trade`, `value`, `amount`, `vouch` (image), optional `proof` (image) | Posts a spawner vouch |
-| `/buildvouch` | Owner | `trade`, `value`, `vouch`, optional `proof`, optional `schem` | Posts a build / base vouch. `schem` is the build name |
+| `/buildvouch` | Owner | `trade`, `value`, `vouch`, optional `proof`, optional `schem` (`.litematic` file) | Posts a build / base vouch. If you attach a Litematica file it is posted on the card as a downloadable file |
 | `/giveawayvouch` | Owner | `amount`, `vouch`, optional `proof` | Posts a giveaway vouch. `proof` shows the winner being paid |
 | `/summary` | Owner | none | Posts the live summary panel (sections: overview, spawners, builds, giveaways, each with recent transactions). Only one exists at a time, and posting a new one removes the old one |
 | `/purge` | Owner | `amount` (1-100), optional `user`, `filter`, `contains`, `scan`, `include_pinned` | Finds matching messages in the current channel, shows a confirmation with the exact count, and deletes them only after you press **Delete** (30 s timeout, **Cancel** to abort). Pinned messages are skipped unless `include_pinned` is on. Discord can't bulk delete messages older than 14 days, so those are skipped. The `contains`, `links`, `attachments` and `embeds` filters need the Message Content Intent |
@@ -87,7 +87,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 /spawnerprice buy:16.2m sell:15.3m
 /spawnerbuy amount:128
 /spawnervouch trade:Customer bought from me value:3.44b amount:200 vouch:<image> proof:<image>
-/buildvouch trade:Customer sold to me value:250m vouch:<image> proof:<image> schem:Mega Base
+/buildvouch trade:Customer sold to me value:250m vouch:<image> proof:<image> schem:<mega_base.litematic>
 /giveawayvouch amount:5m vouch:<image> proof:<image>
 /ticketpanel
 ```

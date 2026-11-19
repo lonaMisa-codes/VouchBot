@@ -22,7 +22,6 @@ module.exports = {
   async execute(i) {
     if (!(await ownerOnly(i))) return;
     await i.deferReply({ flags: MessageFlags.Ephemeral });
-    
     const value = parsePrice(i.options.getString('value'));
     if (!value) return i.editReply('Invalid value. Use formats like `500k`, `3.44b`, `1500000`.');
 
@@ -42,18 +41,13 @@ module.exports = {
       fields: [
         { name: 'Trade value', value: money(value), inline: true },
         { name: 'Trade', value: side === 'buy' ? '🛒 Bought from me' : '💰 Sold to me', inline: true },
-        ...(schemAttachment ? [{ name: 'Schematic', value: `\`${schemAttachment.name}\``, inline: true }] : []),
       ],
       vouch: i.options.getAttachment('vouch'),
       proof: i.options.getAttachment('proof'),
       schem: schemAttachment,
       categoryId: config.channels.build,
-      record: { 
-        kind: 'build', 
-        side, 
-        schem: schemAttachment?.name || null, 
-        value 
-      },
+      // /summary shows the schematic name without the extension
+      record: { kind: 'build', side, schem: schemAttachment?.name.replace(/\.litematic$/i, '') ?? null, value },
     });
   },
 };
