@@ -1,21 +1,59 @@
 const config = require('./config');
 const store = require('./store');
 const { toFile } = require('./post');
+const { describeSize, formatBytes } = require('./litematic');
 
-// Schematic posting.
-// In a schematic channel, send ONE message with the pictures + the schematic file (a caption is used as the
-// build name). Then REPLY to it with the owner(s): mention them, or type their names (several: comma, & or "and").
-// The bot re-posts everything as one message with the info text, then removes your two messages.
-// Needs the Message Content intent (MESSAGE_CONTENT_INTENT=true) and Manage Messages in those channels.
+// Schematic posting. Two kinds of channel:
+//  - posting channel: the bot re-posts the pictures AND the schematic file (build number like B1)
+//  - booster channel: the bot re-posts the pictures ONLY, with the booster text (build number like BB1)
+// In either one: send ONE message with the pictures + the schematic file (a caption is used as the build name),
+// then REPLY to it with the owner(s): mention them, or type their names (several: comma, & or "and").
+// The bot posts the result and removes your two messages. Needs the Message Content intent
+// (MESSAGE_CONTENT_INTENT=true) and Manage Messages in those channels.
+// Channels come from .env and from the /schematicchannel and /boosterchannel commands.
 
-const X = '<:Xes:1572886072185192468>';
-const B = '<:builder:1572886634733641849>';
+const E = config.schematic.emojis;
 const WARNING = 'Taking this schematic and reposting it in your own server without credit or permission will result in removal of access, scammer roles across partnered servers, and possible blacklist.';
+const BOOSTER_NOTE = 'To access any of these booster schematics, you will need to boost our server as its the only to get them.';
 
-const channels = config.schematic.channels;
-const enabled = config.messageContent && Object.keys(channels).length > 0;
-if (Object.keys(channels).length && !config.messageContent) {
-  console.warn('SCHEMATIC_CHANNELS is set but MESSAGE_CONTENT_INTENT is not true, so schematic posting is off.');
+const KINDS = {
+  posting: { key: 'schemChannels', env: () => config.schematic.channels },
+  booster: { key: 'boosterChannels', env: () => config.schematic.boosterChannels },
+};
+
+// Channels saved by the commands are added on top of the ones from .env
+const channelsOf = (kind) => ({ ...KINDS[kind].env(), ...(store.getMeta(KINDS[kind].key) ?? {}) });
+const prefixOf = (channelId) => {
+  const post = channelsOf('posting')[channelId];
+  if (post) return { kind: 'posting', prefix: post };
+  const boost = channelsOf('booster')[channelId];
+  return boost ? { kind: 'booster', prefix: boost } : null;
+};
+
+function addChannel(kind, channelId, prefix) {
+  const other = kind === 'posting' ? 'booster' : 'posting';
+  if (channelsOf(other)[channelId]) return { ok: false, reason: `That channel is already a ${other} channel. Remove it there first.` };
+  const saved = store.getMeta(KINDS[kind].key) ?? {};
+  store.setMeta(KINDS[kind].key, { ...saved, [channelId]: prefix.toUpperCase() });
+  return { ok: true };
+}
+
+function removeChannel(kind, channelId) {
+  const saved = store.getMeta(KINDS[kind].key) ?? {};
+  if (channelId in saved) {
+    const { [channelId]: _gone, ...rest } = saved;
+    store.setMeta(KINDS[kind].key, rest);
+    return { ok: true };
+  }
+  if (KINDS[kind].env()[channelId]) return { ok: false, reason: 'That channel is set in the .env file. Remove it from there and restart the bot.' };
+  return { ok: false, reason: 'That channel is not in the list.' };
+}
+
+const listChannels = (kind) => channelsOf(kind);
+
+const enabled = config.messageContent;
+if ((Object.keys(config.schematic.channels).length || Object.keys(config.schematic.boosterChannels).length) && !enabled) {
+  console.warn('Schematic channels are set but MESSAGE_CONTENT_INTENT is not true, so schematic posting is off.');
 }
 
 const isImage = (a) => a.contentType?.startsWith('image/');
@@ -45,15 +83,16 @@ function parseOwners(message) {
   return [...new Set(owners)].slice(0, 10);
 }
 
-function buildText({ name, tag, owners }) {
+function buildText({ name, tag, owners, size, booster = false }) {
   return [
-    `${X} DO NOT SHARE THESE SCHEMATICS ${X}`,
-    ` ${B}    ${name}   ${B}`,
+    `**${E.warn}**  __**DO NOT SHARE THESE SCHEMATICS**__ **${E.warn}**`,
+    `#           ${E.build}  **${name}**  ${E.build}`,
+    `${E.brand} **${booster ? config.schematic.boosterBrand : config.schematic.brand}**`,
     '',
-    config.schematic.brand,
-    `BUILD NUMBER: ${tag}`,
-    WARNING,
-    `Original Creator: ${owners.join(' & ')}`,
+    `__***BUILD NUMBER: ${tag}***__`,
+    `_**Size =**_ ${size}`,
+    `*${booster ? BOOSTER_NOTE : WARNING}*`,
+    ` Original Creator: ${owners.join(' & ')}`,
   ].join('\n');
 }
 
@@ -64,8 +103,10 @@ async function fail(message, text) {
 
 async function run(message) {
   if (!enabled || message.author.bot || !message.guild || !message.reference?.messageId) return;
-  const prefix = channels[message.channelId];
-  if (!prefix || !canPost(message)) return;
+  const where = prefixOf(message.channelId);
+  if (!where || !canPost(message)) return;
+  const { kind, prefix } = where;
+  const booster = kind === 'booster';
 
   const original = await message.channel.messages.fetch(message.reference.messageId).catch(() => null);
   // A reply to something without attachments is just normal chat: ignore it
@@ -74,30 +115,34 @@ async function run(message) {
   const atts = [...original.attachments.values()];
   const images = atts.filter(isImage);
   const schems = atts.filter((a) => !isImage(a));
-  if (!schems.length) return fail(message, 'That message has no schematic file. Attach the schematic (and the pictures), then reply to it again.');
+  if (booster && !images.length) return fail(message, 'That message has no pictures. Attach the pictures (and the schematic file for the size), then reply to it again.');
+  if (!booster && !schems.length) return fail(message, 'That message has no schematic file. Attach the schematic (and the pictures), then reply to it again.');
 
   const owners = parseOwners(message);
   if (!owners.length) return fail(message, 'Who made it? Mention the owner(s) or type their name(s) in your reply. Use a comma or & for several.');
 
-  const name = original.content.split('\n')[0].trim().slice(0, 100) || cleanName(schems[0].name);
+  const name = original.content.split('\n')[0].trim().slice(0, 100) || (schems[0] ? cleanName(schems[0].name) : 'Build');
   const counters = store.getMeta('schemCounters') ?? {};
   const number = (counters[prefix] ?? 0) + 1;
   const tag = `${prefix}${number}`;
 
-  let files;
+  let imageFiles;
+  let schemFiles;
   try {
-    files = [
-      ...(await Promise.all(images.map((a, i) => toFile(a, `image${i + 1}`)))),
-      ...(await Promise.all(schems.map((a) => toFile(a, 'schematic', true)))),
-    ];
+    imageFiles = await Promise.all(images.map((a, i) => toFile(a, `image${i + 1}`)));
+    schemFiles = await Promise.all(schems.map((a) => toFile(a, 'schematic', true)));
   } catch (err) {
     console.error(err);
     return fail(message, 'Could not download the files. Please try again.');
   }
 
+  // Size comes from the schematic file(s). Booster posts read it but never re-post the file.
+  const size = schemFiles.length ? schemFiles.map((f) => describeSize(f.attachment)).join(' | ') : 'Unknown';
+  const files = booster ? imageFiles : [...imageFiles, ...schemFiles];
+
   try {
     // No pings: the owners were already pinged by your reply
-    await message.channel.send({ content: buildText({ name, tag, owners }), files, allowedMentions: { parse: [] } });
+    await message.channel.send({ content: buildText({ name, tag, owners, size, booster }), files, allowedMentions: { parse: [] } });
   } catch (err) {
     console.error(err);
     return fail(message, 'Could not post it. I need Send Messages and Attach Files here (and the files must fit the upload limit).');
@@ -115,4 +160,4 @@ function handle(message) {
   return chain;
 }
 
-module.exports = { handle, buildText, parseOwners };
+module.exports = { handle, buildText, parseOwners, addChannel, removeChannel, listChannels, formatBytes };

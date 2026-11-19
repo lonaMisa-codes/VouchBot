@@ -22,7 +22,15 @@ module.exports = {
   messageContent: process.env.MESSAGE_CONTENT_INTENT === 'true',
   schematic: {
     brand: process.env.SCHEMATIC_BRAND || "Tomberzz's Schematics",
+    boosterBrand: process.env.SCHEMATIC_BOOSTER_BRAND || "Tomberzz's Booster Schematics",
     channels: parseChannelTags(process.env.SCHEMATIC_CHANNELS),
+    boosterChannels: parseChannelTags(process.env.SCHEMATIC_BOOSTER_CHANNELS),
+    // Custom emojis: <:name:id>. Replace with emojis from a server the bot is in.
+    emojis: {
+      warn: process.env.SCHEMATIC_EMOJI_WARN || '<:dogandcatx:1572906401653592124>',
+      build: process.env.SCHEMATIC_EMOJI_BUILD || '<:Dogandcathammer:1572898999797555380>',
+      brand: process.env.SCHEMATIC_EMOJI_BRAND || '<:catanddawgdonut:1572892243461673051>',
+    },
   },
   ticketCategoryId: process.env.TICKET_CATEGORY_ID || null,
   channels: {
