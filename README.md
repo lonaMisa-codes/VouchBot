@@ -73,6 +73,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/ticket add` | Owner | `user` | Adds someone to the ticket |
 | `/schematicchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the schematic posting channels. See [Schematic posting](#schematic-posting) |
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
+| `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
 
 **Notes**
@@ -220,10 +221,15 @@ Each command also has `remove` and `list`. `prefix` is 1 to 3 letters and each p
 **Needs:** `MESSAGE_CONTENT_INTENT=true` (also enable **Message Content Intent** in the Developer Portal, Bot tab), and the bot needs Send Messages, Attach Files and Manage Messages in those channels.
 
 **How to post**
-1. In the channel, send ONE message with the pictures and the schematic file. Text on the first line is used as the build name; without it the file name is used. In a booster channel the file is optional and is only read for the size.
-2. Reply to that message with the owner(s): mention them or type their names. For several, separate with a comma, `&` or `and`.
-3. The bot posts the result and deletes your two messages. The owners are not pinged again.
+1. In the channel, send ONE message with the pictures and the schematic file. The first line of your text is the build name; without text the file name is used. In a booster channel the file is optional and is only read for the size.
+2. The bot posts it right away and deletes your message. It is credited to the bot owner (`VOUCH_TARGET_ID`) automatically. To credit someone else, `@mention` them in your message (several mentions work too).
 
-**Size line:** For a `.litematic` file the bot reads the build dimensions and shows `120 x 64 x 97 (2.4 MB)`. For any other file, or one it can't read, it shows only the file size.
+No reply is needed. If the files are missing, the bot tells you for 15 seconds.
+
+**Editing a post later:** `/schematicedit build:B3` plus any of `name`, `creator` (mention or typed names, separated by comma or `&`), `number` (for example `B12`) and `size`. The bot edits its own post and keeps the pictures and file. A number that is already used is refused, and new posts never reuse a number you set by hand. Only posts made after this feature was added can be edited.
+
+**Storage:** The bot saves only a tiny text record per post (about 80 bytes: message ID, name, creator, size) in `data/vouches.json`. The pictures and files stay in the Discord message and are never stored by the bot. Keep the `data/` folder when updating.
+
+**Size line:** For a `.litematic` file the bot reads the build dimensions and shows `120 x 64 x 97`. If it can't read them (other file type or damaged file) it shows `Unknown`; you can fix it with `/schematicedit`. The file size is not shown.
 
 **Look of the post:** warning line, the build name between hammer emojis, the brand line, `BUILD NUMBER`, `Size`, the notice and `Original Creator`. Change the brand lines with `SCHEMATIC_BRAND` and `SCHEMATIC_BOOSTER_BRAND`. The three custom emojis can be replaced with `SCHEMATIC_EMOJI_WARN`, `SCHEMATIC_EMOJI_BUILD` and `SCHEMATIC_EMOJI_BRAND` (format `<:name:id>`). They only show if the bot is in the server that owns the emoji and has **Use External Emojis** where it posts.

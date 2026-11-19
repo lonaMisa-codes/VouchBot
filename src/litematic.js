@@ -61,17 +61,10 @@ function readSize(fileBuffer) {
   return null;
 }
 
-function formatBytes(n) {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
-}
-
-// "120 x 64 x 120 (2.4 MB)", or just "2.4 MB" when the dimensions can't be read
+// "120 x 64 x 97", or "Unknown" when the dimensions can't be read (not a litematic, damaged)
 function describeSize(fileBuffer) {
   const dims = readSize(fileBuffer);
-  const bytes = formatBytes(fileBuffer.length);
-  return dims ? `${dims.x} x ${dims.y} x ${dims.z} (${bytes})` : bytes;
+  return dims ? `${dims.x} x ${dims.y} x ${dims.z}` : 'Unknown';
 }
 
-module.exports = { readSize, formatBytes, describeSize };
+module.exports = { readSize, describeSize };
