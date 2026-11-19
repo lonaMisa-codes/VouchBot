@@ -9,13 +9,15 @@ const { describeSize } = require('./litematic');
 // In either one: send ONE message with the pictures + the schematic file. The first line of your text is the
 // build name (the file name is used if you leave it empty). The bot posts it right away, credited to the bot
 // owner (VOUCH_TARGET_ID), or to whoever you @mention in the message, and removes your message.
-// Fix anything later with /schematicedit. Needs the Message Content intent (MESSAGE_CONTENT_INTENT=true)
+// Messages made with Discord's Forward button work too (their files are read from the forwarded copy).
+// Name afterwards: send the name as a normal message within 90 seconds of your post, or reply to the bot's post at
+// any time, and the bot renames it. Fix anything later with /schematicedit. Needs the Message Content intent (MESSAGE_CONTENT_INTENT=true)
 // and Manage Messages in those channels. Channels come from .env and from /schematicchannel and /boosterchannel.
 // Only a tiny text record per post is stored (message id + name / creator / size), never the files.
 
 const E = config.schematic.emojis;
 const WARNING = 'Taking this schematic and reposting it in your own server without credit or permission will result in removal of access, scammer roles across partnered servers, and possible blacklist.';
-const BOOSTER_NOTE = 'To access any of these booster schematics, you will need to boost our server as its the only to get them.';
+const BOOSTER_NOTE = "To access any of these booster schematics, you will need to boost TobVi, as it's the only way to get them.";
 
 const KINDS = {
   posting: { key: 'schemChannels', env: () => config.schematic.channels },
@@ -107,6 +109,14 @@ const MENTION = /<@!?(\d+)>/g;
 const TAG = /^[A-Za-z]{1,3}\d{1,6}$/;
 const LINK = /discord(?:app)?\.com\/channels\/\d+\/(\d+)\/(\d+)/g;
 const posts = () => store.getMeta('schemPosts') ?? {};
+// Attachments of a message, including those inside a forwarded message (Discord's Forward button)
+const attachmentsOf = (m) => [
+  ...m.attachments.values(),
+  ...[...(m.messageSnapshots?.values() ?? [])].flatMap((snap) => [...(snap.attachments?.values() ?? [])]),
+];
+
+const RENAME_WINDOW_MS = 90_000;
+const recent = new Map(); // `${channelId}:${userId}` -> { tag, at }: your latest post, for "name afterwards"
 const isLitematic = (f) => /\.litematic$/i.test(f.name ?? '');
 
 // Builds and sends one schematic post in `channel`. atts = Discord attachments.
@@ -156,18 +166,49 @@ async function createPost(channel, { kind, prefix, atts, name, owners }) {
   return { ok: true, tag, url: sent.url };
 }
 
+// A text-only message in a schematic channel renames a post: either a reply to the bot's post, or a normal message
+// sent shortly after your own post. @mentions in it change the creator, the first other line is the new name.
+// Returns true if the message was a rename.
+async function renameFromMessage(message) {
+  if (!message.content.trim()) return false;
+  let tag = null;
+  const key = `${message.channelId}:${message.author.id}`;
+  if (message.reference?.messageId) {
+    const all = posts();
+    tag = Object.keys(all).find((t) => all[t].m === message.reference.messageId) ?? null;
+  } else {
+    const last = recent.get(key);
+    if (last && Date.now() - last.at <= RENAME_WINDOW_MS) tag = last.tag;
+  }
+  if (!tag) return false;
+
+  const mentions = [...new Set([...message.content.matchAll(MENTION)].map((m) => `<@${m[1]}>`))];
+  const name = message.content.replace(MENTION, '').split('\n').map((l) => l.trim()).find(Boolean) ?? '';
+  if (!name && !mentions.length) return false;
+
+  const res = await editPost(message.client, message.guild, tag, { name: name || null, creator: mentions.join(' ') || null });
+  if (!res.ok) { await fail(message, res.reason); return true; }
+  recent.delete(key);
+  await message.delete().catch(() => console.warn('Could not delete your message. Give the bot Manage Messages in the schematic channel.'));
+  return true;
+}
+
 async function run(message) {
-  if (!enabled || message.author.bot || !message.guild || message.attachments.size === 0) return;
+  if (!enabled || message.author.bot || !message.guild) return;
   const where = prefixOf(message.channelId);
   if (!where || !canPost(message)) return;
+
+  const atts = attachmentsOf(message);
+  if (atts.length === 0) { await renameFromMessage(message); return; }
 
   // Credit: whoever you @mention, otherwise the bot owner
   const mentioned = [...new Set([...message.content.matchAll(MENTION)].map((m) => `<@${m[1]}>`))].slice(0, 10);
   const owners = mentioned.length ? mentioned : [config.targetId ? `<@${config.targetId}>` : 'Unknown'];
   const firstLine = message.content.replace(MENTION, '').split('\n').map((l) => l.trim()).find(Boolean) ?? '';
 
-  const r = await createPost(message.channel, { kind: where.kind, prefix: where.prefix, atts: [...message.attachments.values()], name: firstLine, owners });
+  const r = await createPost(message.channel, { kind: where.kind, prefix: where.prefix, atts, name: firstLine, owners });
   if (!r.ok) return fail(message, r.reason);
+  recent.set(`${message.channelId}:${message.author.id}`, { tag: r.tag, at: Date.now() });
   await message.delete().catch(() => console.warn('Could not delete your message. Give the bot Manage Messages in the schematic channel.'));
 }
 
@@ -184,10 +225,11 @@ async function forwardLinks(interaction, text, { creator, name } = {}) {
   for (const [, channelId, messageId] of links) {
     const msg = await interaction.client.channels.fetch(channelId).then((c) => c.messages.fetch(messageId)).catch(() => null);
     if (!msg) { lines.push(`❌ \`${messageId}\`: I cannot read that message. The bot must be in that server and be able to see the channel.`); continue; }
-    if (!msg.attachments.size) { lines.push(`❌ \`${messageId}\`: that message has no files.`); continue; }
+    const atts = attachmentsOf(msg);
+    if (!atts.length) { lines.push(`❌ \`${messageId}\`: that message has no files.`); continue; }
     const owners = creator ? parseOwnersText(creator, interaction.guild) : [`<@${msg.author.id}>`];
     if (!owners.length) { lines.push('❌ I could not read the creator. Mention someone or type their name.'); break; }
-    const r = await enqueue(() => createPost(interaction.channel, { kind: where.kind, prefix: where.prefix, atts: [...msg.attachments.values()], name, owners }));
+    const r = await enqueue(() => createPost(interaction.channel, { kind: where.kind, prefix: where.prefix, atts, name, owners }));
     lines.push(r.ok ? `✅ \`${r.tag}\`: ${r.url}` : `❌ \`${messageId}\`: ${r.reason}`);
   }
   return lines.join('\n');

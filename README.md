@@ -227,6 +227,14 @@ Each command also has `remove` and `list`. `prefix` is 1 to 3 letters and each p
 
 No reply is needed. If the files are missing, the bot tells you for 15 seconds.
 
+**Forwarded messages:** Messages made with Discord's **Forward** button work too, in both normal and booster channels. Forward the message into the channel and the bot reads the pictures and file from the forwarded copy. A forward can't carry text, so the build name defaults to the schematic's file name.
+
+**Sending the name afterwards:** After a post, either
+- send the name as a normal message within **90 seconds** of your post, or
+- **reply to the bot's post** with the name, at any time.
+
+The bot renames the post and deletes your message. `@mentions` in that message change the creator. Because of the 90-second window, a normal chat message you type right after posting is treated as the name.
+
 **Forwarding other messages:** `/schematicforward link:<message link>` (run it inside a schematic or booster channel). Right-click any message, choose Copy Message Link and paste it. You can paste several links at once (up to 10). The bot copies that message's pictures, schematic file and other attachments into a normal post in your format:
 - **Name:** the schematic's file name (for example `Cool_Tower.litematic` becomes `Cool Tower`), unless you give `name`.
 - **Number:** counted like any other post (`B5`, `BB2`...).
