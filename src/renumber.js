@@ -29,23 +29,22 @@ function renumberComponents(components, no, total, refFor) {
   return { components: components.map(walk), changed };
 }
 
-// Gives every attachment of a message a unique name and resolves CDN urls to attachment:// references
-function makeResolver(msg) {
+// In card (Components V2) posts the pictures are not listed as message attachments, only as links inside the card.
+// So every picture / file link gets a unique name and is later downloaded from that link and re-uploaded.
+function makeResolver() {
   const names = new Set();
-  const byId = new Map(); // attachment id -> new name
+  const byUrl = new Map(); // url -> { name, url }
   const refFor = (url) => {
-    const id = /\/attachments\/\d+\/(\d+)\//.exec(url)?.[1];
-    const att = id && msg.attachments.get(id);
-    if (!att) throw new Error(`attachment not found for ${String(url).slice(0, 80)}`);
-    if (!byId.has(id)) {
-      let name = att.name;
-      for (let i = 1; names.has(name); i++) name = `${i}_${att.name}`;
+    if (!byUrl.has(url)) {
+      const base = decodeURIComponent(new URL(url).pathname.split('/').pop() || 'file');
+      let name = base;
+      for (let i = 1; names.has(name); i++) name = `${i}_${base}`;
       names.add(name);
-      byId.set(id, name);
+      byUrl.set(url, { name, url });
     }
-    return `attachment://${byId.get(id)}`;
+    return `attachment://${byUrl.get(url).name}`;
   };
-  return { refFor, byId };
+  return { refFor, items: byUrl };
 }
 
 // Edits the posts of the given vouch records to their current numbers. Returns the posts that could not be edited.
@@ -55,12 +54,12 @@ async function refreshPosts(client, records) {
     for (const ref of v.messages ?? []) {
       try {
         const msg = await client.channels.fetch(ref.channelId).then((c) => c.messages.fetch(ref.messageId));
-        const { refFor, byId } = makeResolver(msg);
+        const { refFor, items } = makeResolver();
         const { components, changed } = renumberComponents(msg.components.map((c) => c.toJSON()), v.no, v.total, refFor);
         if (!changed) continue;
         const files = [];
-        for (const [id, name] of byId) {
-          const res = await fetch(msg.attachments.get(id).url);
+        for (const { name, url } of items.values()) {
+          const res = await fetch(url);
           if (!res.ok) throw new Error(`could not download ${name} (${res.status})`);
           files.push(new AttachmentBuilder(Buffer.from(await res.arrayBuffer()), { name }));
         }
