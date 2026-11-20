@@ -74,7 +74,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/schematicchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the schematic posting channels. See [Schematic posting](#schematic-posting) |
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
 | `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
-| `/vouchremove` | Owner | `type` (Spawner / Build / Giveaway / Total), `number` | Removes a vouch after a confirmation: deletes its posts and frees its numbers, so the next vouch reuses them. Use it for a vouch you posted by mistake |
+| `/vouchremove` | Owner | `number` (the Total number from the all-vouches channel) | Removes that vouch after a confirmation: deletes its posts everywhere and moves every later vouch down by one (Total and category number), editing their posts |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
 
 **Notes**
@@ -124,7 +124,9 @@ Each vouch is **one card** with the title, a counter line. The all-vouches chann
 
 ## Vouch numbers
 
-Each vouch keeps its own numbers (its category number and its Total). A new vouch takes the **lowest free** number, so when you remove a vouch with `/vouchremove` its number is used again by the next vouch. Deleting a vouch post by hand does **not** free the number, because the bot still has the record: use `/vouchremove` instead (it works even if the post is already gone). Vouches are posted one at a time, so two quick vouches never get the same number.
+Each vouch keeps its own numbers (its category number and its Total). To remove a vouch, run `/vouchremove` with its **Total** number (the one shown in the all-vouches channel). The bot deletes its posts in every channel, then moves every later vouch down by one, both the Total and the number inside its category, and **edits those posts in place** so the numbers stay continuous. The summary panel updates too. Deleting a vouch post by hand does **not** change numbers, because the bot still has the record: use `/vouchremove` instead (it works even if the post is already gone). Vouches are posted one at a time, so two quick vouches never get the same number.
+
+Removing an early vouch edits many posts, so it can take a while (Discord limits how fast messages can be edited). The bot tells you when it is done and lists any post it could not edit.
 
 ## Vouch channels
 

@@ -59,6 +59,22 @@ module.exports = {
     if (v) { Object.assign(v, patch); save(false); }
     return v;
   },
+  // Removes a vouch and moves every later vouch down by one (Total, and the number inside its category).
+  // Returns { removed, changed } where changed = the vouches whose numbers moved (their posts need editing).
+  removeAndRenumber(id) {
+    const i = db.vouches.findIndex((x) => x.id === id);
+    if (i === -1) return null;
+    const [removed] = db.vouches.splice(i, 1);
+    const changed = [];
+    for (const v of db.vouches) {
+      let moved = false;
+      if (v.total > removed.total) { v.total -= 1; moved = true; }
+      if (v.kind === removed.kind && v.no > removed.no) { v.no -= 1; moved = true; }
+      if (moved) changed.push(v);
+    }
+    save();
+    return { removed, changed };
+  },
   remove(id) {
     const i = db.vouches.findIndex((x) => x.id === id);
     if (i === -1) return null;
