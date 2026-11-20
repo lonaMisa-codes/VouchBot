@@ -49,7 +49,7 @@ async function refreshPosts(client, records) {
         });
       } catch (err) {
         console.error(`Could not renumber post ${ref.messageId}:`, err.message);
-        failed.push(`${v.kind} ${v.no} (Total ${v.total})`);
+        failed.push(`${v.kind} ${v.no} (Total ${v.total}): ${String(err.message).slice(0, 150)}`);
         break;
       }
     }

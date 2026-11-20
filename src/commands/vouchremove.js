@@ -49,7 +49,7 @@ module.exports = {
 
     const failed = await refreshPosts(i.client, changed);
     const text = failed.length
-      ? `✅ Removed. ⚠️ Could not edit ${failed.length} post${failed.length === 1 ? '' : 's'} (deleted, or the bot lacks access): ${failed.slice(0, 15).join(', ')}.`
+      ? `✅ Removed. ⚠️ Could not edit ${failed.length} post${failed.length === 1 ? '' : 's'}:\n${failed.slice(0, 8).map((f) => `• ${f}`).join('\n')}\nRetry with \`/vouchfix\`.`
       : `✅ Removed ${LABEL[v.kind]} vouch ${v.no} (Total ${v.total}) and fixed the numbers on ${changed.length} later vouch${changed.length === 1 ? '' : 'es'}.`;
     return i.editReply(text).catch(() => {});
   },

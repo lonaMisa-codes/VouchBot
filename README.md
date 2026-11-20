@@ -75,6 +75,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
 | `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
 | `/vouchremove` | Owner | `number` (the Total number from the all-vouches channel) | Removes that vouch after a confirmation: deletes its posts everywhere and moves every later vouch down by one (Total and category number), editing their posts |
+| `/vouchfix` | Owner | optional `number` (Total) | Re-edits vouch posts so their numbers match the records. Use it after `/vouchremove` reports a post it could not edit. Posts that are already right are skipped |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
 
 **Notes**
