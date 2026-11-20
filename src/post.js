@@ -33,7 +33,7 @@ const KIND_LABEL = { spawner: 'Spawner', build: 'Build', giveaway: 'Giveaway' };
  * Sent to the all-vouches channel and, if given, the category channel.
  * The interaction must already be deferred (ephemeral). `record` is stored for /summary.
  */
-async function publish(interaction, { title, fields, proofTitle = 'Proof of trade', vouch, proof, schem, categoryId, record }) {
+async function publishNow(interaction, { title, fields, proofTitle = 'Proof of trade', vouch, proof, schem, categoryId, record }) {
   // The vouch picture is required; the proof picture and schematic are optional
   if (![vouch, proof].filter(Boolean).every((a) => a.contentType?.startsWith('image/'))) {
     return interaction.editReply('The vouch and the proof must be images (png, jpg, webp).');
@@ -62,10 +62,8 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
   }
   const files = [vouchFile, proofFile, schemFile].filter(Boolean);
 
-  // Counters include this vouch: "Build - 12 | Total - 140"
-  const all_ = store.all();
-  const kindNo = all_.filter((v) => v.kind === record.kind).length + 1;
-  const totalNo = all_.length + 1;
+  // Numbers: the lowest free one, so the number of a removed vouch is used again ("Build - 12 | Total - 140")
+  const { no: kindNo, total: totalNo } = store.nextNumbers(record.kind);
 
   const color = record.kind === 'giveaway' ? config.COLORS.gold : config.COLORS.vouch;
   const text = (t) => new TextDisplayBuilder().setContent(t);
@@ -113,8 +111,16 @@ async function publish(interaction, { title, fields, proofTitle = 'Proof of trad
     return interaction.editReply('Failed to post the vouch. Make sure I can send messages, embed links and attach files there (and that the files are not too large).');
   }
 
-  store.add({ ...record, messages: sent.map(({ channelId, messageId }) => ({ channelId, messageId })) });
+  store.add({ ...record, no: kindNo, total: totalNo, messages: sent.map(({ channelId, messageId }) => ({ channelId, messageId })) });
   return interaction.editReply(`Posted: ${sent[0].url}`);
+}
+
+// One vouch at a time, so two quick vouches never get the same number
+let chain = Promise.resolve();
+function publish(...args) {
+  const result = chain.then(() => publishNow(...args));
+  chain = result.catch(() => {});
+  return result;
 }
 
 module.exports = { publish, toFile };

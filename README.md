@@ -74,6 +74,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/schematicchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the schematic posting channels. See [Schematic posting](#schematic-posting) |
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
 | `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
+| `/vouchremove` | Owner | `type` (Spawner / Build / Giveaway / Total), `number` | Removes a vouch after a confirmation: deletes its posts and frees its numbers, so the next vouch reuses them. Use it for a vouch you posted by mistake |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
 
 **Notes**
@@ -120,6 +121,10 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 ## Vouch cards
 
 Each vouch is **one card** with the title, a counter line. The all-vouches channel shows `Build - 12  •  Total - 140` (category number and overall number); the spawner / build / giveaway channels show only the category number, like `Build - 12`, the trade details, the vouch picture (**Proof of vouch**) and the proof picture.
+
+## Vouch numbers
+
+Each vouch keeps its own numbers (its category number and its Total). A new vouch takes the **lowest free** number, so when you remove a vouch with `/vouchremove` its number is used again by the next vouch. Deleting a vouch post by hand does **not** free the number, because the bot still has the record: use `/vouchremove` instead (it works even if the post is already gone). Vouches are posted one at a time, so two quick vouches never get the same number.
 
 ## Vouch channels
 
