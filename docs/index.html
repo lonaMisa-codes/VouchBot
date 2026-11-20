@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Donut Vouch Bot</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍩</text></svg>">
+<style>
+:root{--bg:#0b0d14;--p:#12151f;--l:#232838;--t:#e8eaf2;--m:#8f96ab;--a:#ff7ab8;--b:#7a8cff}
+@media(prefers-color-scheme:light){:root{--bg:#f6f7fb;--p:#fff;--l:#e0e3ee;--t:#171a26;--m:#5d647a;--a:#d6246e;--b:#4457e6}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.6 system-ui,sans-serif}
+.w{max-width:900px;margin:auto;padding:0 16px}a{color:var(--b)}
+code{font:.9em ui-monospace,monospace;background:color-mix(in srgb,var(--b) 15%,transparent);padding:.1em .4em;border-radius:6px}
+pre{background:var(--p);border:1px solid var(--l);border-radius:12px;padding:14px;overflow:auto}pre code{background:none;padding:0}
+h1{font-size:clamp(32px,7vw,56px);line-height:1.08;text-align:center;margin:60px 0 12px;letter-spacing:-.03em}
+h1 span{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.s{text-align:center;color:var(--m);max-width:600px;margin:0 auto 40px}h2{margin:44px 0 12px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.c{background:var(--p);border:1px solid var(--l);border-radius:14px;padding:16px}.c b{display:block;margin-bottom:4px}.c span{color:var(--m);font-size:14.5px}
+.tw{overflow-x:auto;border:1px solid var(--l);border-radius:12px}table{border-collapse:collapse;width:100%;background:var(--p);font-size:14.5px}
+td{padding:9px 14px;border-bottom:1px solid var(--l);vertical-align:top}tr:last-child td{border:0}td:first-child{white-space:nowrap}
+.n{border-left:3px solid var(--a);background:var(--p);padding:10px 14px;border-radius:0 10px 10px 0;color:var(--m);margin:12px 0}
+footer{text-align:center;color:var(--m);padding:40px 0;font-size:14px}
+</style></head><body><div class="w">
+<h1>Vouches, prices &amp; tickets<br><span>for one DonutSMP trader</span></h1>
+<p class="s">A Discord bot for numbered vouch cards, a live Skeleton spawner price panel, buy/sell tickets and schematic posting.</p>
+
+<div class="g">
+<div class="c"><b>🧾 Vouch cards</b><span>Spawner, build and giveaway vouches with proof, auto-numbered.</span></div>
+<div class="c"><b>💰 Price panel</b><span>Live buy/sell prices with buttons. Shown as (16.2m) 16,200,000.</span></div>
+<div class="c"><b>🎫 Tickets</b><span>IGN and amount form, total at current rate, claim and close.</span></div>
+<div class="c"><b>📊 Summary</b><span>Live stats panel that refreshes after every vouch.</span></div>
+<div class="c"><b>🏗️ Schematics</b><span>Send pictures and a file, get one post with build number and creator.</span></div>
+<div class="c"><b>🔢 Renumbering</b><span>/vouchremove fixes later vouch numbers in place.</span></div>
+</div>
+
+<h2>Commands</h2>
+<p>Only <code>/spawnerbuy</code> and <code>/spawnersell</code> are for everyone. All others are owner-only.</p>
+<div class="tw"><table>
+<tr><td><code>/spawnerprice</code></td><td>Set buy/sell price and update the panel</td></tr>
+<tr><td><code>/spawnerbuy</code> <code>/spawnersell</code></td><td>Price calculators (anyone)</td></tr>
+<tr><td><code>/spawnervouch</code></td><td>Spawner vouch: trade, value, amount, vouch, proof</td></tr>
+<tr><td><code>/buildvouch</code></td><td>Build vouch, optional <code>.litematic</code></td></tr>
+<tr><td><code>/giveawayvouch</code></td><td>Giveaway vouch with proof of payment</td></tr>
+<tr><td><code>/vouchremove</code> <code>/vouchfix</code></td><td>Remove a vouch and renumber, or re-sync numbers</td></tr>
+<tr><td><code>/summary</code></td><td>Post the live summary panel</td></tr>
+<tr><td><code>/ticketpanel</code> <code>/close</code> <code>/ticket</code></td><td>Support panel and ticket controls</td></tr>
+<tr><td><code>/schematicchannel</code> <code>/boosterchannel</code></td><td>add / remove / list schematic channels with a prefix</td></tr>
+<tr><td><code>/schematicedit</code></td><td>Change name, creator, number or size of a post</td></tr>
+<tr><td><code>/purge</code></td><td>Bulk delete with confirmation</td></tr>
+</table></div>
+
+<h2>Schematic posting</h2>
+<ol><li><code>/schematicchannel add</code> a channel with a prefix like <code>B</code>.</li>
+<li>Send ONE message with the pictures and the file. First line = build name.</li>
+<li>The bot posts it with <code>BUILD NUMBER: B1</code>, size and creator, then deletes yours. <code>@mention</code> to credit someone else.</li></ol>
+<div class="n">Needs Message Content Intent (Developer Portal) and <code>MESSAGE_CONTENT_INTENT=true</code>. Bot needs Send Messages, Attach Files, Manage Messages there.</div>
+
+<h2>Setup</h2>
+<pre><code>npm install
+cp .env.example .env   # fill it in
+npm start</code></pre>
+<p>Node 18.17+. Invite with <code>permissions=257040</code> and scopes <code>bot applications.commands</code>. Keep <code>data/</code> when updating. On a panel host, startup file is <code>src/index.js</code>.</p>
+
+<h2>.env</h2>
+<p><b>Required:</b> <code>DISCORD_TOKEN</code>, <code>VOUCH_TARGET_ID</code>, <code>ALL_VOUCHES_CHANNEL_ID</code>.<br>
+<b>Optional:</b> <code>GUILD_ID</code>, <code>SPAWNER_VOUCHES_CHANNEL_ID</code>, <code>BUILD_VOUCHES_CHANNEL_ID</code>, <code>GIVEAWAY_VOUCHES_CHANNEL_ID</code>, <code>COMMAND_ROLE_ID</code>, <code>TICKET_CATEGORY_ID</code>, <code>OWNER_IGN</code>, <code>MESSAGE_CONTENT_INTENT</code>, <code>SCHEMATIC_BRAND</code>.</p>
+<footer>Donut Vouch Bot · <a href="https://github.com/lonaMisa-codes/vouchbot">GitHub</a></footer>
+</div></body></html>
