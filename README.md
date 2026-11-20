@@ -74,6 +74,7 @@ There are no other roles. Manage Server, Manage Channels and the ticket opener g
 | `/schematicchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the schematic posting channels. See [Schematic posting](#schematic-posting) |
 | `/boosterchannel` | Owner | `add` (`channel`, `prefix`), `remove`, `list` | Manages the booster schematic channels (pictures only) |
 | `/schematicedit` | Owner | `build`, optional `name`, `creator`, `number`, `size` | Edits an already posted schematic (name, creator, build number or size) |
+| `/schematicremove` | Owner | `build` | Removes a posted schematic (normal or booster) after a confirmation. Later builds with the same prefix move down by one and their posts are edited. |
 | `/vouchremove` | Owner | `number` (the Total number from the all-vouches channel) | Removes that vouch after a confirmation: deletes its posts everywhere and moves every later vouch down by one (Total and category number), editing their posts |
 | `/vouchfix` | Owner | optional `number` (Total) | Re-edits vouch posts so their numbers match the records. Use it after `/vouchremove` reports a post it could not edit. Posts that are already right are skipped |
 | `/ticketpanel` | Owner | none | Posts the **General Support** ticket panel in the current channel. Spawner buy / sell tickets open from the price panel |
@@ -243,6 +244,8 @@ No reply is needed. If the files are missing, the bot tells you for 15 seconds.
 The bot renames the post and deletes your message. `@mentions` in that message change the creator. Because of the 90-second window, a normal chat message you type right after posting is treated as the name.
 
 **Editing a post later:** `/schematicedit build:B3` plus any of `name`, `creator` (mention or typed names, separated by comma or `&`), `number` (for example `B12`) and `size`. The bot edits its own post and keeps the pictures and file. A number that is already used is refused, and new posts never reuse a number you set by hand. Only posts made after this feature was added can be edited.
+
+**Removing a post:** `/schematicremove build:B3` deletes the post after you confirm, then every later build with the same prefix moves down by one (`B4` becomes `B3`) and its post is edited. Prefixes are separate, so removing `B3` never changes `BB` numbers. If a post cannot be edited, the bot lists it; fix it with `/schematicedit`.
 
 **Storage:** The bot saves only a tiny text record per post (about 80 bytes: message ID, name, creator, size) in `data/vouches.json`. The pictures and files stay in the Discord message and are never stored by the bot. Keep the `data/` folder when updating.
 

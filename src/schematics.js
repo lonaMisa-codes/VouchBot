@@ -249,6 +249,49 @@ async function editPost(client, guild, tagInput, changes) {
   return { ok: true, tag: newTag, url: msg.url };
 }
 
+// Remove a post by build number (B7, BB2). Later posts with the same prefix move down by one and are edited.
+// Returns { ok, rec, moved: [{from, to}], failed: [text] }.
+async function removePostRun(client, tagInput) {
+  const tag = tagInput.trim().toUpperCase();
+  const all = posts();
+  const rec = all[tag];
+  if (!rec) return { ok: false, reason: `No schematic post with build number \`${tag}\`.` };
+  const m = tag.match(/^([A-Z]+)(\d+)$/);
+  const prefix = m[1];
+  const num = Number(m[2]);
+
+  const del = await client.channels.fetch(rec.c).then((c) => c.messages.delete(rec.m)).then(() => true, (e) => e.code === 10008 || e.code === 10003);
+  if (!del) return { ok: false, reason: 'I could not delete that post. I need View Channel, Read Message History and Manage Messages there.' };
+
+  const later = Object.keys(all)
+    .map((t) => { const x = t.match(/^([A-Z]+)(\d+)$/); return x && x[1] === prefix && Number(x[2]) > num ? { t, n: Number(x[2]) } : null; })
+    .filter(Boolean)
+    .sort((a, b) => a.n - b.n);
+
+  const next = { ...all };
+  delete next[tag];
+  for (const l of later) delete next[l.t];
+  const moved = later.map((l) => ({ from: l.t, to: `${prefix}${l.n - 1}`, rec: all[l.t] }));
+  for (const mv of moved) next[mv.to] = mv.rec;
+  store.setMeta('schemPosts', next);
+  const counters = store.getMeta('schemCounters') ?? {};
+  const top = Object.keys(next).reduce((mx, t) => { const x = t.match(/^([A-Z]+)(\d+)$/); return x && x[1] === prefix ? Math.max(mx, Number(x[2])) : mx; }, 0);
+  store.setMeta('schemCounters', { ...counters, [prefix]: top });
+
+  const failed = [];
+  for (const mv of moved) {
+    try {
+      const r = mv.rec;
+      const msg = await client.channels.fetch(r.c).then((c) => c.messages.fetch(r.m));
+      await msg.edit({ content: buildText({ name: r.n, tag: mv.to, owners: r.o, size: r.s, booster: !!r.b }), allowedMentions: { parse: [] }, flags: MessageFlags.SuppressEmbeds });
+    } catch (err) {
+      failed.push(`${mv.from} -> ${mv.to}: ${err.message}`);
+    }
+  }
+  for (const [k, v] of recent) if (v.tag === tag || moved.some((x) => x.from === v.tag)) recent.delete(k);
+  return { ok: true, rec, moved: moved.map(({ from, to }) => ({ from, to })), failed };
+}
+
 // One at a time, so two quick posts never get the same number
 let chain = Promise.resolve();
 function enqueue(fn) {
@@ -256,6 +299,7 @@ function enqueue(fn) {
   chain = result.catch((err) => console.error('Schematic post failed:', err));
   return result;
 }
+const removePost = (client, tag) => enqueue(() => removePostRun(client, tag));
 const handle = (message) => enqueue(() => run(message)).catch(() => {});
 
-module.exports = { handle, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost };
+module.exports = { handle, buildText, parseOwnersText, addChannel, removeChannel, listChannels, editPost, removePost, postInfo: (t) => posts()[t.trim().toUpperCase()] ?? null, laterCount: (t) => { const m = t.trim().toUpperCase().match(/^([A-Z]+)(\d+)$/); return m ? Object.keys(posts()).filter((k) => { const x = k.match(/^([A-Z]+)(\d+)$/); return x && x[1] === m[1] && Number(x[2]) > Number(m[2]); }).length : 0; } };

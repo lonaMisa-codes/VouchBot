@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Donut Vouch Bot user guide</title>
+<meta name="description" content="How to use, set up and host Donut Vouch Bot: vouches, spawner prices, tickets and schematic posting for a Discord trading server.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%A9%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,500..800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fff4f7; --surface: #ffffff; --ink: #3a1d17; --ink2: #6b4a43; --line: #f0cad7;
+  --accent: #c72f6b; --accent-ink: #ffffff; --accent-soft: #ffe0ea; --code: #fbe8ef;
+  --mint: #4fc9a8; --sun: #ffc93c; --sky: #6f9dff; --berry: #e0508a;
+  --head: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #241210; --surface: #331f1a; --ink: #ffeaf0; --ink2: #d9b8b0; --line: #4d312a;
+    --accent: #ff8fb5; --accent-ink: #2a120e; --accent-soft: #4c2433; --code: #3d2620;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #241210; --surface: #331f1a; --ink: #ffeaf0; --ink2: #d9b8b0; --line: #4d312a;
+  --accent: #ff8fb5; --accent-ink: #2a120e; --accent-soft: #4c2433; --code: #3d2620;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.65 var(--body); -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; border-radius: 4px; }
+code, kbd { font-family: var(--mono); font-size: .86em; background: var(--code); padding: .12em .4em; border-radius: 5px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 1rem 1.1rem; border-radius: 10px; overflow-x: auto; font: 400 .88rem/1.6 var(--mono); margin: 1rem 0; position: relative; }
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+.skip { position: absolute; left: -999px; top: .5rem; background: var(--accent); color: var(--accent-ink); padding: .5rem .9rem; border-radius: 8px; z-index: 50; }
+.skip:focus { left: .5rem; }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1180px; margin: 0 auto; padding: .7rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
+.brand { font: 700 1.15rem var(--head); font-stretch: 85%; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: .5rem; }
+.top-links { margin-left: auto; display: flex; gap: 1rem; font-size: .95rem; }
+.top-links a { color: var(--ink2); text-decoration: none; font-weight: 500; }
+.top-links a:hover { color: var(--accent); }
+
+/* hero */
+.hero { max-width: 1180px; margin: 0 auto; padding: 3.5rem 1.25rem 3rem; display: grid; grid-template-columns: 1.05fr .95fr; gap: 3rem; align-items: center; }
+.hero h1 { font: 800 clamp(2.5rem, 5.4vw, 4.4rem)/1 var(--head); font-stretch: 78%; letter-spacing: -.02em; margin: 0 0 1.2rem; }
+.hero p.lead { font-size: 1.2rem; color: var(--ink2); max-width: 34rem; margin: 0 0 1.8rem; }
+.cta { display: flex; flex-wrap: wrap; gap: .8rem; }
+.btn { display: inline-block; padding: .75rem 1.3rem; border-radius: 999px; font-weight: 600; text-decoration: none; border: 2px solid var(--accent); }
+.btn.fill { background: var(--accent); color: var(--accent-ink); }
+.btn.fill:hover { filter: brightness(1.08); }
+.btn.line { color: var(--accent); }
+.btn.line:hover { background: var(--accent-soft); }
+
+/* discord-style example card */
+.dc { background: #313338; color: #dbdee1; border-radius: 12px; padding: 1rem 1rem 1.1rem; font: 400 .95rem/1.5 "gg sans", "Segoe UI", system-ui, sans-serif; box-shadow: 0 18px 40px -18px rgba(58,29,23,.55); }
+.dc-head { display: flex; align-items: center; gap: .65rem; margin-bottom: .55rem; }
+.dc-av { width: 38px; height: 38px; border-radius: 50%; background: #f6b6ca; display: grid; place-items: center; font-size: 1.25rem; }
+.dc-name { font-weight: 600; color: #fff; }
+.dc-app { background: #5865f2; color: #fff; font-size: .68rem; font-weight: 600; padding: 1px 5px; border-radius: 4px; margin-left: .35rem; vertical-align: 1px; }
+.dc-card { background: #2b2d31; border-left: 4px solid var(--mint); border-radius: 6px; padding: .85rem 1rem 1rem; }
+.dc-card h3 { font: 700 1.3rem/1.3 "gg sans", "Segoe UI", system-ui, sans-serif; color: #fff; margin: 0 0 .15rem; }
+.dc-card h4 { font: 700 1.05rem/1.3 "gg sans", "Segoe UI", system-ui, sans-serif; color: #fff; margin: 0 0 .55rem; }
+.dc-card hr { border: 0; border-top: 1px solid #3f4147; margin: .6rem 0; }
+.dc-card b { color: #fff; }
+.dc-card .lbl { margin: .55rem 0 .25rem; }
+.dc-img { height: 64px; border-radius: 8px; background: #1e1f22; display: flex; align-items: center; gap: .7rem; padding: 0 .8rem; color: #949ba4; font-size: .85rem; }
+.num { display: inline-block; transition: transform .35s ease, background-color .6s ease; padding: 0 .12em; border-radius: 4px; }
+.num.moved { background: rgba(79, 201, 168, .35); }
+.dc-note { margin: .8rem 0 0; font-size: .92rem; color: var(--ink2); }
+
+/* layout */
+.layout { max-width: 1180px; margin: 0 auto; padding: 1rem 1.25rem 4rem; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 3rem; }
+.toc { position: sticky; top: 5rem; align-self: start; font-size: .96rem; }
+.toc ul { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+.toc a { display: block; padding: .32rem 0 .32rem .9rem; margin-left: -2px; border-left: 2px solid transparent; color: var(--ink2); text-decoration: none; font-weight: 500; }
+.toc a:hover { color: var(--accent); }
+.toc a[aria-current="true"] { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+main { min-width: 0; max-width: 52rem; }
+section { padding-top: 1.5rem; margin-bottom: 3.5rem; }
+h2 { font: 800 clamp(1.8rem, 3.4vw, 2.5rem)/1.1 var(--head); font-stretch: 82%; letter-spacing: -.015em; margin: 0 0 1rem; }
+h3 { font: 700 1.3rem/1.25 var(--head); font-stretch: 90%; margin: 2.2rem 0 .6rem; }
+p { margin: 0 0 1rem; max-width: 42rem; }
+.muted { color: var(--ink2); }
+ul.sp, ol.steps { padding: 0; margin: 0 0 1.2rem; max-width: 44rem; }
+ul.sp { list-style: none; }
+ul.sp li { position: relative; padding-left: 1.7rem; margin-bottom: .55rem; }
+ul.sp li::before { content: ""; position: absolute; left: 0; top: .72em; width: 14px; height: 5px; border-radius: 3px; background: var(--berry); transform: rotate(-24deg); }
+ul.sp li:nth-child(4n+2)::before { background: var(--mint); transform: rotate(18deg); }
+ul.sp li:nth-child(4n+3)::before { background: var(--sun); transform: rotate(-8deg); }
+ul.sp li:nth-child(4n+4)::before { background: var(--sky); transform: rotate(30deg); }
+ol.steps { list-style: none; counter-reset: step; }
+ol.steps li { counter-increment: step; position: relative; padding-left: 2.8rem; margin-bottom: 1rem; }
+ol.steps li::before { content: counter(step); position: absolute; left: 0; top: .05rem; width: 1.9rem; height: 1.9rem; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: 700 .95rem/1.9rem var(--head); text-align: center; }
+
+/* tables */
+.tw { overflow-x: auto; margin: 1rem 0 1.6rem; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { text-align: left; padding: .65rem .9rem; vertical-align: top; border-bottom: 1px solid var(--line); }
+th { font: 600 .92rem var(--body); color: var(--ink2); background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface)); position: sticky; top: 0; }
+tr:last-child td { border-bottom: 0; }
+td.c { white-space: nowrap; }
+.pill { display: inline-block; padding: .08rem .6rem; border-radius: 999px; font-size: .84rem; font-weight: 600; white-space: nowrap; }
+.pill.all { background: #d5f5ec; color: #0f5c47; }
+.pill.own { background: var(--accent-soft); color: var(--accent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .pill.all { background: #1f4a3d; color: #aef0d9; } }
+
+/* callouts */
+.note { border-left: 5px solid var(--sun); background: var(--surface); padding: .9rem 1.1rem; border-radius: 0 10px 10px 0; margin: 1.2rem 0; max-width: 44rem; }
+.note.warn { border-left-color: var(--berry); }
+.note p:last-child { margin-bottom: 0; }
+
+/* tools */
+.tool { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.2rem; margin: 1.2rem 0 1.8rem; }
+.tool h3 { margin-top: 0; }
+.row { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; }
+label { display: grid; gap: .3rem; font-weight: 600; font-size: .92rem; }
+input[type=text], input[type=search], input[type=number] { font: inherit; padding: .6rem .8rem; border-radius: 9px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); min-width: 0; }
+input:focus-visible { outline: 3px solid var(--sky); border-color: var(--sky); }
+.seg { display: inline-flex; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { font: 600 .92rem var(--body); padding: .5rem 1rem; border: 0; background: transparent; color: var(--ink2); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.out { margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .8rem; }
+.out div { background: var(--bg); border-radius: 10px; padding: .7rem .9rem; }
+.out small { display: block; color: var(--ink2); font-weight: 600; }
+.out strong { font-family: var(--mono); font-size: .95rem; font-weight: 500; overflow-wrap: anywhere; }
+.copy { font: 600 .85rem var(--body); border: 2px solid var(--line); background: var(--surface); color: var(--ink2); border-radius: 8px; padding: .25rem .65rem; cursor: pointer; }
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+pre .copy { position: absolute; top: .55rem; right: .55rem; }
+.count { color: var(--ink2); font-size: .92rem; }
+
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: .1rem 1.1rem; margin-bottom: .7rem; max-width: 46rem; }
+summary { cursor: pointer; font-weight: 600; padding: .8rem 0; }
+details[open] summary { color: var(--accent); }
+details p, details ul { margin-bottom: .9rem; }
+
+footer { border-top: 1px solid var(--line); padding: 2rem 1.25rem 3rem; text-align: center; color: var(--ink2); font-size: .95rem; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.2rem; }
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  .toc { position: sticky; top: 3.4rem; z-index: 15; background: var(--bg); margin: 0 -1.25rem; padding: .3rem 1.25rem; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .toc ul { display: flex; border-left: 0; gap: .3rem; white-space: nowrap; }
+  .toc a { border-left: 0; margin: 0; padding: .45rem .8rem; border-radius: 999px; }
+  .toc a[aria-current="true"] { background: var(--accent-soft); }
+  .top-links { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .num { transition: none; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top"><div class="top-in">
+  <a class="brand" href="#top"><span aria-hidden="true">🍩</span> Donut Vouch Bot</a>
+  <nav class="top-links" aria-label="Quick links"><a href="#commands">Commands</a><a href="#setup">Setup</a><a href="https://github.com/lonaMisa-codes/VouchBot">Source code</a></nav>
+</div></header>
+
+<div class="hero" id="top">
+  <div>
+    <h1>Vouches, prices and tickets for one trader.</h1>
+    <p class="lead">Donut Vouch Bot runs a DonutSMP trading server. It posts vouches with proof, keeps live Skeleton spawner prices, opens private tickets and shares build schematics.</p>
+    <div class="cta"><a class="btn fill" href="#setup">Set it up</a><a class="btn line" href="#commands">See the commands</a></div>
+  </div>
+  <figure style="margin:0">
+    <div class="dc" role="img" aria-label="Example vouch card posted by the bot">
+      <div class="dc-head"><div class="dc-av" aria-hidden="true">🍩</div><div><span class="dc-name">Vouch Bot</span><span class="dc-app">APP</span></div></div>
+      <div class="dc-card">
+        <h3>💀 Spawner Vouch</h3>
+        <h4>Spawner - <span class="num" id="n-kind">11</span> &nbsp;•&nbsp; Total - <span class="num" id="n-total">140</span></h4>
+        <hr>
+        <div><b>Trade:</b> 🛒 Bought from me</div>
+        <div><b>Trade value:</b> (3.44b) 3,440,000,000</div>
+        <div><b>Spawners:</b> 200 (3 stacks + 8)</div>
+        <hr>
+        <div class="lbl"><b>Proof of vouch</b></div>
+        <div class="dc-img"><svg width="40" height="40" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><rect width="8" height="8" fill="#2b2d31"/><path fill="#d8dadf" d="M1 1h6v5H1z"/><path fill="#1e1f22" d="M2 3h1v1H2zM5 3h1v1H5zM3 5h2v1H3z"/><path fill="#d8dadf" d="M2 6h4v1H2z"/></svg>vouch picture</div>
+        <div class="lbl"><b>Proof of trade</b></div>
+        <div class="dc-img"><svg width="40" height="40" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><rect width="8" height="8" fill="#2b2d31"/><path fill="#ffc93c" d="M1 2h6v4H1z"/><path fill="#2b2d31" d="M2 3h1v2H2zM5 3h1v2H5z"/></svg>proof picture</div>
+      </div>
+    </div>
+    <figcaption class="dc-note" id="dc-note">Example of a vouch card. When the owner removes a vouch, every later vouch moves down by one and the bot edits those posts.</figcaption>
+  </figure>
+</div>
+
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <ul id="toc-list">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#customers">For customers</a></li>
+    <li><a href="#commands">Commands</a></li>
+    <li><a href="#vouches">Vouches</a></li>
+    <li><a href="#prices">Prices</a></li>
+    <li><a href="#tickets">Tickets</a></li>
+    <li><a href="#schematics">Schematics</a></li>
+    <li><a href="#setup">Setup</a></li>
+    <li><a href="#hosting">Hosting</a></li>
+    <li><a href="#help">Troubleshooting</a></li>
+  </ul>
+</nav>
+
+<main id="main">
+
+<section id="overview">
+  <h2>What the bot does</h2>
+  <ul class="sp">
+    <li><b>Vouches.</b> The owner posts spawner, build and giveaway vouches. Each is one card with a vouch picture and an optional proof picture, and the bot numbers them.</li>
+    <li><b>Prices.</b> A live price panel shows what Skeleton spawners cost to buy and what they pay when sold. Two calculator commands do the maths for anyone.</li>
+    <li><b>Tickets.</b> Customers open a private ticket to buy, sell or ask for help. The owner claims and closes it.</li>
+    <li><b>Schematics.</b> Builds are shared in dedicated channels with a build number, size and creator credit. Booster channels show pictures only.</li>
+    <li><b>Summary.</b> One panel shows the totals and recent trades, and refreshes itself after every vouch.</li>
+  </ul>
+  <p>The bot is built for a single trader, so everything is written from one person's point of view: "I sell to you" and "bought from me". Only <b>Skeleton spawners</b> are traded.</p>
+
+  <h3>Who can use what</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Level</th><th>Who</th><th>What they can do</th></tr></thead>
+    <tbody>
+      <tr><td class="c"><span class="pill all">Everyone</span></td><td>Every server member</td><td>Use <code>/spawnerbuy</code> and <code>/spawnersell</code>, press the price panel buttons, and chat in their own ticket.</td></tr>
+      <tr><td class="c"><span class="pill own">Owner</span></td><td>The owner, plus anyone with the one optional command role</td><td>Every other command and every ticket control. The role works exactly like the owner.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">There are no other staff roles. Manage Server, Manage Channels and being the ticket opener give no extra access.</p>
+</section>
+
+<section id="customers">
+  <h2>For customers</h2>
+  <p>You do not need any setup. Everything you can do is in the server.</p>
+  <h3>Check a price</h3>
+  <p>Find the price panel. <b>I SELL TO YOU</b> is what you pay to buy a spawner. <b>YOU SELL TO ME</b> is what you get when you sell one. To work out a total, use the calculators:</p>
+  <ul class="sp">
+    <li><code>/spawnerbuy amount:128</code> shows what 128 spawners cost you.</li>
+    <li><code>/spawnersell amount:128</code> shows what you earn selling 128.</li>
+  </ul>
+  <p>Both show the amount (with stacks), the price each and the total, using the live prices on the panel.</p>
+  <h3>Open a ticket</h3>
+  <p>Press <b>Buy Spawners</b> or <b>Sell Spawners</b> on the price panel, fill in your in-game name and the amount, and a private channel opens with the owner. For anything else, use the <b>General Support</b> panel. You can have one open ticket of each type at a time. The owner closes the ticket when you are done.</p>
+  <h3>Reading a vouch</h3>
+  <p>Each vouch in the vouch channels is one card. It shows the type of trade, its value, a picture of the vouch and, usually, a proof picture. The counter line (for example <code>Build - 12 • Total - 140</code>) is how many vouches of that type there are, and how many in all.</p>
+</section>
+
+<section id="commands">
+  <h2>Commands</h2>
+  <p>Search the list or filter by who can use a command. Commands marked Owner reply with a private message if anyone else tries them.</p>
+  <div class="row" style="margin-bottom:.8rem">
+    <label>Search<input type="search" id="cmd-q" placeholder="vouch, ticket, price..." autocomplete="off"></label>
+    <div class="seg" role="group" aria-label="Filter by access">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="all-users" aria-pressed="false">Everyone</button>
+      <button type="button" data-f="owner" aria-pressed="false">Owner</button>
+    </div>
+    <span class="count" id="cmd-count" aria-live="polite"></span>
+  </div>
+  <div class="tw"><table id="cmd-table">
+    <thead><tr><th>Command</th><th>Who</th><th>Options</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr data-a="all-users"><td><code>/spawnerbuy</code></td><td><span class="pill all">Everyone</span></td><td><code>amount</code></td><td>Total cost to buy spawners from the owner at the current price.</td></tr>
+      <tr data-a="all-users"><td><code>/spawnersell</code></td><td><span class="pill all">Everyone</span></td><td><code>amount</code></td><td>How much you earn selling spawners to the owner at the current price.</td></tr>
+      <tr data-a="owner"><td><code>/spawnerprice</code></td><td><span class="pill own">Owner</span></td><td><code>buy</code>, <code>sell</code></td><td>Sets the Skeleton spawner prices and updates the price panel. Give one or both. The first time, give both. If there is no panel yet, one is posted in the current channel.</td></tr>
+      <tr data-a="owner"><td><code>/spawnervouch</code></td><td><span class="pill own">Owner</span></td><td><code>trade</code>, <code>value</code>, <code>amount</code>, <code>vouch</code>, optional <code>proof</code></td><td>Posts a spawner vouch.</td></tr>
+      <tr data-a="owner"><td><code>/buildvouch</code></td><td><span class="pill own">Owner</span></td><td><code>trade</code>, <code>value</code>, <code>vouch</code>, optional <code>proof</code>, optional <code>schem</code></td><td>Posts a build vouch. <code>schem</code> takes a <code>.litematic</code> file, which is shown on the card as a download.</td></tr>
+      <tr data-a="owner"><td><code>/giveawayvouch</code></td><td><span class="pill own">Owner</span></td><td><code>amount</code>, <code>vouch</code>, optional <code>proof</code></td><td>Posts a giveaway vouch. The proof shows the winner being paid. The amount can also be free text.</td></tr>
+      <tr data-a="owner"><td><code>/vouchremove</code></td><td><span class="pill own">Owner</span></td><td><code>number</code></td><td>Removes the vouch with that Total number after a confirmation. Its posts are deleted and every later vouch moves down by one.</td></tr>
+      <tr data-a="owner"><td><code>/vouchfix</code></td><td><span class="pill own">Owner</span></td><td>optional <code>number</code></td><td>Re-edits vouch posts so their numbers match. Use it when <code>/vouchremove</code> says it could not edit a post. Posts that are already right are skipped.</td></tr>
+      <tr data-a="owner"><td><code>/summary</code></td><td><span class="pill own">Owner</span></td><td>none</td><td>Posts the live summary panel. Only one exists at a time, and a new one replaces the old one.</td></tr>
+      <tr data-a="owner"><td><code>/ticketpanel</code></td><td><span class="pill own">Owner</span></td><td>none</td><td>Posts the General Support ticket panel in the current channel. Spawner tickets open from the price panel.</td></tr>
+      <tr data-a="owner"><td><code>/close</code></td><td><span class="pill own">Owner</span></td><td>optional <code>reason</code></td><td>Closes the ticket you are in. With a reason, the reason is posted first.</td></tr>
+      <tr data-a="owner"><td><code>/ticket claim</code></td><td><span class="pill own">Owner</span></td><td>none</td><td>Claims the ticket.</td></tr>
+      <tr data-a="owner"><td><code>/ticket unclaim</code></td><td><span class="pill own">Owner</span></td><td>none</td><td>Unclaims the ticket.</td></tr>
+      <tr data-a="owner"><td><code>/ticket add</code></td><td><span class="pill own">Owner</span></td><td><code>user</code></td><td>Adds someone to the ticket.</td></tr>
+      <tr data-a="owner"><td><code>/schematicchannel</code></td><td><span class="pill own">Owner</span></td><td><code>add</code> (<code>channel</code>, <code>prefix</code>), <code>remove</code>, <code>list</code></td><td>Manages the schematic posting channels.</td></tr>
+      <tr data-a="owner"><td><code>/boosterchannel</code></td><td><span class="pill own">Owner</span></td><td><code>add</code> (<code>channel</code>, <code>prefix</code>), <code>remove</code>, <code>list</code></td><td>Manages the booster schematic channels, which show pictures only.</td></tr>
+      <tr data-a="owner"><td><code>/schematicedit</code></td><td><span class="pill own">Owner</span></td><td><code>build</code>, optional <code>name</code>, <code>creator</code>, <code>number</code>, <code>size</code></td><td>Edits a schematic post that was already made.</td></tr>
+      <tr data-a="owner"><td><code>/schematicremove</code></td><td><span class="pill own">Owner</span></td><td><code>build</code></td><td>Removes a posted schematic (normal or booster) after you confirm. Later builds with the same prefix move down by one and their posts are edited.</td></tr>
+      <tr data-a="owner"><td><code>/purge</code></td><td><span class="pill own">Owner</span></td><td><code>amount</code>, optional <code>user</code>, <code>filter</code>, <code>contains</code>, <code>scan</code>, <code>include_pinned</code></td><td>Finds messages in the current channel, shows how many it will delete, and deletes them only after you press Delete. See <a href="#purge">Purge options</a>.</td></tr>
+    </tbody>
+  </table></div>
+  <p id="cmd-empty" class="muted" hidden>No command matches that search. Try a shorter word.</p>
+
+  <h3>Examples</h3>
+<pre><button class="copy" type="button" data-copy="examples">Copy</button><code id="examples">/spawnerprice buy:16.2m sell:15.3m
+/spawnerbuy amount:128
+/spawnervouch trade:Customer bought from me value:3.44b amount:200 vouch:&lt;image&gt; proof:&lt;image&gt;
+/buildvouch trade:Customer sold to me value:250m vouch:&lt;image&gt; schem:&lt;mega_base.litematic&gt;
+/giveawayvouch amount:5m vouch:&lt;image&gt;
+/vouchremove number:31
+/close reason:Trade finished</code></pre>
+
+  <h3>Amounts and prices</h3>
+  <p>Anywhere a command asks for a price or value, you can type it in short form. The bot shows it back in both forms.</p>
+  <div class="tw"><table>
+    <thead><tr><th>You type</th><th>The bot shows</th></tr></thead>
+    <tbody>
+      <tr><td><code>16.2m</code></td><td>(16.2m) 16,200,000</td></tr>
+      <tr><td><code>3.44b</code></td><td>(3.44b) 3,440,000,000</td></tr>
+      <tr><td><code>250k</code></td><td>(250k) 250,000</td></tr>
+      <tr><td><code>$3,000</code></td><td>3,000</td></tr>
+      <tr><td><code>1t</code></td><td>(1t) 1,000,000,000,000</td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">Units are <code>k</code> (thousand), <code>m</code> (million), <code>b</code> (billion) and <code>t</code> (trillion). Spawner amounts also show stacks of 64, for example 105 is 1 stack + 41.</p>
+
+  <h3 id="purge">Purge options</h3>
+  <p><code>/purge</code> never deletes anything until you confirm. It shows the exact count and the filters first, and gives you 30 seconds to press <b>Delete</b> or <b>Cancel</b>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>amount</code></td><td>How many messages to delete, 1 to 100.</td></tr>
+      <tr><td><code>user</code></td><td>Only that person's messages.</td></tr>
+      <tr><td><code>filter</code></td><td>Everything, humans only, bots only, messages with attachments, with links or with embeds.</td></tr>
+      <tr><td><code>contains</code></td><td>Only messages containing this text.</td></tr>
+      <tr><td><code>scan</code></td><td>How many recent messages to look through, up to 500 (default 100). Raise it when your filters match older messages.</td></tr>
+      <tr><td><code>include_pinned</code></td><td>Also delete pinned messages. They are skipped by default.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note"><p>Discord cannot bulk delete messages older than 14 days, so those are skipped. The <code>contains</code>, <code>links</code>, <code>attachments</code> and <code>embeds</code> filters also need the Message Content Intent (see <a href="#setup">Setup</a>).</p></div>
+</section>
+
+<section id="vouches">
+  <h2>Vouches</h2>
+  <p>A vouch is public proof of a finished trade. The owner posts one with <code>/spawnervouch</code>, <code>/buildvouch</code> or <code>/giveawayvouch</code>. Every vouch is one card, posted to the all-vouches channel and copied to its own channel.</p>
+
+  <h3>What is on a card</h3>
+  <ul class="sp">
+    <li>A title with the type: 💀 Spawner Vouch, 🏗️ Build Vouch or 🎁 Giveaway Vouch.</li>
+    <li>A counter line. In the all-vouches channel it reads <code>Build - 12 • Total - 140</code>. In the spawner, build and giveaway channels it shows only the category number, like <code>Build - 12</code>.</li>
+    <li>The details: the trade (<i>Customer bought from me</i> or <i>Customer sold to me</i>), the value, and the amount for spawners.</li>
+    <li><b>Proof of vouch</b>, which is the vouch picture. It is always there.</li>
+    <li>A proof picture, which is optional. It is labelled <b>Proof of trade</b> on spawners, <b>Proof of base</b> on builds and <b>Proof of payment</b> on giveaways.</li>
+    <li>On builds, an optional <code>.litematic</code> file as a download.</li>
+  </ul>
+
+  <h3>Where vouches go</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Vouch</th><th>Posted to</th></tr></thead>
+    <tbody>
+      <tr><td>Spawner</td><td>All-vouches channel, and the spawner channel if one is set</td></tr>
+      <tr><td>Build</td><td>All-vouches channel, and the build channel if one is set</td></tr>
+      <tr><td>Giveaway</td><td>All-vouches channel, and the giveaway channel if one is set</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>How numbering works</h3>
+  <p>Each vouch has two numbers: its place among vouches of its type, and its place among all vouches (the Total). Only the all-vouches channel shows the Total. New vouches take the next free number, and vouches are posted one at a time, so two quick vouches never share a number.</p>
+
+  <h3>Removing a vouch</h3>
+  <p>Posted something by mistake? Do not delete the post by hand. The bot still keeps its record and its number, which leaves a gap. Use <code>/vouchremove</code> instead.</p>
+  <ol class="steps">
+    <li>Look at the Total number on the vouch in the all-vouches channel, for example 31.</li>
+    <li>Run <code>/vouchremove number:31</code>. The bot shows the vouch and how many later vouches will move, and asks you to confirm.</li>
+    <li>Press <b>Remove</b>. The bot deletes the vouch everywhere, moves every later vouch down by one (the Total and its type number) and edits those posts. The summary panel updates too.</li>
+  </ol>
+  <p>Removing an early vouch edits many posts, and Discord limits how fast messages can be edited, so it can take a while. The bot tells you when it is done. If it lists posts it could not edit, fix the cause it shows and run <code>/vouchfix</code>. It re-checks every post and skips the ones that are already right.</p>
+
+  <h3>The summary panel</h3>
+  <p><code>/summary</code> posts one panel with an overview (total vouches and total traded), then spawners, builds and giveaways, each with recent trades. It refreshes after every vouch, when the bot starts and every 10 minutes. Posting a new one replaces the old one.</p>
+</section>
+
+<section id="prices">
+  <h2>Prices and calculators</h2>
+  <p>The owner sets the prices with <code>/spawnerprice</code>. The price panel shows them and is the only source the calculators use, so they always match.</p>
+  <div class="tw"><table>
+    <thead><tr><th>On the panel</th><th>Meaning</th><th>Set with</th></tr></thead>
+    <tbody>
+      <tr><td>I SELL TO YOU</td><td>What a customer pays to buy a spawner</td><td><code>buy</code></td></tr>
+      <tr><td>YOU SELL TO ME</td><td>What a customer gets for selling a spawner</td><td><code>sell</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>The panel also has <b>Buy Spawners</b> and <b>Sell Spawners</b> buttons that open a ticket.</p>
+
+  <div class="tool" id="calc">
+    <h3>Try the calculator</h3>
+    <p class="muted">This runs the same maths as the bot, so you can check a result before you open a ticket.</p>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Direction">
+        <button type="button" data-side="buy" aria-pressed="true">Buy from me</button>
+        <button type="button" data-side="sell" aria-pressed="false">Sell to me</button>
+      </div>
+      <label>Spawners<input type="number" id="c-amt" min="1" max="10000000" value="128" inputmode="numeric"></label>
+      <label>Price each<input type="text" id="c-price" value="16.2m" autocomplete="off"></label>
+    </div>
+    <div class="out" aria-live="polite">
+      <div><small>Amount</small><strong id="o-amt"></strong></div>
+      <div><small>Price each</small><strong id="o-each"></strong></div>
+      <div><small>Total</small><strong id="o-total"></strong></div>
+    </div>
+  </div>
+</section>
+
+<section id="tickets">
+  <h2>Tickets</h2>
+  <p>A ticket is a private channel between one customer and the owner.</p>
+  <ul class="sp">
+    <li><b>Spawner tickets</b> open from the price panel. A form asks for the in-game name and the amount. The ticket then shows the name, whether it is a buy or a sell, the amount, the current prices and the total at today's price.</li>
+    <li><b>Support tickets</b> open from the General Support panel (posted with <code>/ticketpanel</code>). One button, no form.</li>
+    <li>When a ticket opens, the customer, the owner and the command role (if set) are pinged.</li>
+    <li>Each person can have one open ticket per type.</li>
+  </ul>
+  <h3>Closing and managing</h3>
+  <p>Only the owner (and the command role) can close, claim, unclaim or add people. Each action is a button in the ticket and a command, so you never have to scroll up to the first message.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Action</th><th>Button</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td>Close</td><td>Close</td><td><code>/close</code></td></tr>
+      <tr><td>Close with a reason</td><td>Close with Reason</td><td><code>/close reason:...</code></td></tr>
+      <tr><td>Claim</td><td>Claim</td><td><code>/ticket claim</code></td></tr>
+      <tr><td>Unclaim</td><td>Unclaim</td><td><code>/ticket unclaim</code></td></tr>
+      <tr><td>Add someone</td><td>Add to Ticket</td><td><code>/ticket add user:@name</code></td></tr>
+    </tbody>
+  </table></div>
+  <p class="muted">The commands only work inside a ticket channel.</p>
+</section>
+
+<section id="schematics">
+  <h2>Schematics</h2>
+  <p>Schematic channels share builds. You drop in the pictures and the file, and the bot re-posts them in one tidy post with a build number, the size and a credit. It then removes your message.</p>
+
+  <h3>Two kinds of channel</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Kind</th><th>Add it with</th><th>What the bot posts</th><th>Numbers</th></tr></thead>
+    <tbody>
+      <tr><td>Posting channel</td><td><code>/schematicchannel add</code></td><td>The pictures and the schematic file</td><td><code>B1</code>, <code>B2</code>...</td></tr>
+      <tr><td>Booster channel</td><td><code>/boosterchannel add</code></td><td>The pictures only. The file is never re-posted, and the booster notice is added</td><td><code>BB1</code>, <code>BB2</code>...</td></tr>
+    </tbody>
+  </table></div>
+  <p>Both commands take a <code>channel</code> and a <code>prefix</code> of 1 to 3 letters. The letters start the build number, and each prefix counts up on its own. A channel can only be one kind. Use <code>list</code> and <code>remove</code> to review or change them.</p>
+
+  <h3>Posting a schematic</h3>
+  <ol class="steps">
+    <li>In a schematic channel, send <b>one message</b> with the pictures and the schematic file. Type the build name on the first line. If you leave it out, the file name is used.</li>
+    <li>The bot posts it right away and deletes your message. It credits the owner. To credit someone else, <code>@mention</code> them in your message.</li>
+    <li>Need to fix the name? Send the new name as a normal message within 90 seconds, or reply to the bot's post with it at any time. Mentions in that message change the creator.</li>
+  </ol>
+  <p>In a booster channel the file is optional. If you attach it, it is only read to work out the size.</p>
+  <ul class="sp">
+    <li><b>Forwarded messages work.</b> Use Discord's Forward button to send a message with pictures and a file into the channel. The bot reads them from the forwarded copy. A forward cannot carry text, so the name is the schematic's file name.</li>
+    <li>If the files are missing, the bot tells you for 15 seconds and posts nothing.</li>
+  </ul>
+
+  <h3>What the post looks like</h3>
+<pre><code>⚠ DO NOT SHARE THESE SCHEMATICS ⚠
+#  🔨 Mega Castle 🔨
+🍩 Tomberzz's Schematics
+
+BUILD NUMBER: B7
+Size = 120 x 64 x 97 = 744,960
+Taking this schematic and reposting it in your own server without
+credit or permission will result in removal of access...
+ Original Creator: @owner</code></pre>
+  <p>The size is read from a <code>.litematic</code> file: width x height x length, then the total (the three multiplied). If the file cannot be read, the size says <code>Unknown</code>.</p>
+
+  <h3>Editing a schematic later</h3>
+  <p>Run <code>/schematicedit build:B7</code> with any of <code>name</code>, <code>creator</code>, <code>number</code> (for example <code>B12</code>) and <code>size</code>. The bot edits its own post and keeps the pictures and file. A number that is already used is refused, and new posts never reuse a number you set by hand. Only posts made since this feature was added can be edited.</p>
+
+  <div class="note"><p><b>Requires the Message Content Intent.</b> The bot cannot read your message otherwise. Turn it on as described in <a href="#setup">Setup</a>, set <code>MESSAGE_CONTENT_INTENT=true</code>, and give the bot Send Messages, Attach Files and Manage Messages in the schematic channels.</p></div>
+  <h3>Removing a schematic</h3>
+  <p>Run <code>/schematicremove build:B3</code> and confirm. The bot deletes the post, then moves every later build with the same prefix down by one (<code>B4</code> becomes <code>B3</code>) and edits those posts. Prefixes count separately, so removing <code>B3</code> never changes <code>BB</code> numbers.</p>
+  <p class="muted">The bot saves only a tiny text record per post (message, name, creator and size, about 80 bytes). Pictures and files stay in Discord and are never stored by the bot.</p>
+</section>
+
+<section id="setup">
+  <h2>Setup</h2>
+  <p>This part is for whoever runs the bot. You need Node 18.17 or newer, a Discord account that can manage the server, and a few minutes.</p>
+
+  <h3>Create the bot in the Developer Portal</h3>
+  <ol class="steps">
+    <li>Go to <a href="https://discord.com/developers/applications">discord.com/developers/applications</a>, choose <b>New Application</b> and name it. On the General Information page, copy the <b>Application ID</b>.</li>
+    <li>Open the <b>Bot</b> tab, choose <b>Reset Token</b> and copy it. This is <code>DISCORD_TOKEN</code>. Treat it like a password: never post it, and reset it if it leaks.</li>
+    <li>Still on the Bot tab, under Privileged Gateway Intents, leave Presence and Server Members <b>off</b>. Turn <b>Message Content Intent</b> on only if you want schematic posting or the text filters of <code>/purge</code>.</li>
+    <li>Invite the bot with the link below, and pick your server.</li>
+    <li>In Discord, turn on Developer Mode (User Settings, Advanced). Right-click your server, yourself and each channel, and choose <b>Copy ID</b> for the settings below.</li>
+    <li>Make sure the bot can see and post in the vouch channels and the ticket category, and has Manage Channels on that category.</li>
+  </ol>
+
+  <div class="tool" id="invite">
+    <h3>Invite link</h3>
+    <div class="row">
+      <label style="flex:1 1 16rem">Application ID<input type="text" id="app-id" placeholder="Paste the Application ID" inputmode="numeric" autocomplete="off"></label>
+    </div>
+    <pre style="margin-bottom:0"><button class="copy" type="button" data-copy="invite-url">Copy</button><code id="invite-url">https://discord.com/oauth2/authorize?client_id=YOUR_APP_ID&amp;permissions=257040&amp;scope=bot%20applications.commands</code></pre>
+  </div>
+
+  <h3>Permissions and intents</h3>
+  <p>The invite link asks for permission number <code>257040</code>. The bot does not need Administrator or Manage Roles.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Permission</th><th>Why the bot needs it</th></tr></thead>
+    <tbody>
+      <tr><td>View Channel, Send Messages, Embed Links</td><td>Panels, calculators, vouches and tickets</td></tr>
+      <tr><td>Attach Files</td><td>Re-uploads the vouch, proof and schematic files</td></tr>
+      <tr><td>Read Message History</td><td>Purge, reading tickets, and editing its own posts</td></tr>
+      <tr><td>Manage Messages</td><td>Purge, and removing your message after a schematic post</td></tr>
+      <tr><td>Manage Channels</td><td>Creating, locking and deleting ticket channels</td></tr>
+      <tr><td>Mention Everyone</td><td>Pinging the command role in new tickets. Skip it if that role allows anyone to mention it</td></tr>
+    </tbody>
+  </table></div>
+  <p>The only intent in use by default is <b>Guilds</b>, which needs no setting. If you set <code>MESSAGE_CONTENT_INTENT=true</code> without switching the intent on in the Developer Portal, the bot cannot log in.</p>
+
+  <h3>Settings in the .env file</h3>
+  <p>Copy <code>.env.example</code> to <code>.env</code> and fill it in. Empty optional settings are skipped.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Setting</th><th>Needed</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>DISCORD_TOKEN</code></td><td>Yes</td><td>The bot token.</td></tr>
+      <tr><td><code>VOUCH_TARGET_ID</code></td><td>Yes</td><td>Your Discord user ID. You are the owner.</td></tr>
+      <tr><td><code>ALL_VOUCHES_CHANNEL_ID</code></td><td>Yes</td><td>Every vouch is posted here.</td></tr>
+      <tr><td><code>GUILD_ID</code></td><td>No</td><td>Registers commands in this server so they appear at once. Empty means global, which can take up to an hour.</td></tr>
+      <tr><td><code>OWNER_IGN</code></td><td>No</td><td>Your in-game name, shown on the summary panel.</td></tr>
+      <tr><td><code>SPAWNER_VOUCHES_CHANNEL_ID</code></td><td>No</td><td>Spawner vouches are also copied here.</td></tr>
+      <tr><td><code>BUILD_VOUCHES_CHANNEL_ID</code></td><td>No</td><td>Build vouches are also copied here.</td></tr>
+      <tr><td><code>GIVEAWAY_VOUCHES_CHANNEL_ID</code></td><td>No</td><td>Giveaway vouches are also copied here.</td></tr>
+      <tr><td><code>COMMAND_ROLE_ID</code></td><td>No</td><td>One role that works like the owner, and is pinged in new tickets.</td></tr>
+      <tr><td><code>TICKET_CATEGORY_ID</code></td><td>No</td><td>The category where ticket channels are created.</td></tr>
+      <tr><td><code>MESSAGE_CONTENT_INTENT</code></td><td>No</td><td>Set to <code>true</code> for schematic posting and the purge text filters.</td></tr>
+      <tr><td><code>SCHEMATIC_BRAND</code>, <code>SCHEMATIC_BOOSTER_BRAND</code></td><td>No</td><td>The brand line on schematic and booster posts.</td></tr>
+      <tr><td><code>SCHEMATIC_EMOJI_WARN</code>, <code>_BUILD</code>, <code>_BRAND</code></td><td>No</td><td>Replace the three emojis in schematic posts. Use the form <code>&lt;:name:id&gt;</code>, from a server the bot is in. The bot also needs Use External Emojis where it posts.</td></tr>
+      <tr><td><code>SCHEMATIC_CHANNELS</code>, <code>SCHEMATIC_BOOSTER_CHANNELS</code></td><td>No</td><td>Optional. Channels can be added with the commands instead, so you can leave these empty.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Then run <code>npm install</code> and <code>npm start</code>. The slash commands register by themselves when the bot starts.</p>
+  <p class="muted">Dependencies are <code>discord.js</code> 14.19 or newer and <code>dotenv</code>. <code>npm install</code> adds both.</p>
+</section>
+
+<section id="hosting">
+  <h2>Hosting</h2>
+  <h3>On Wispbyte</h3>
+  <p>Wispbyte pulls the code from GitHub each time the server starts, so to update the bot you push, then restart.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><code>GIT_ADDRESS</code></td><td><code>https://github.com/lonaMisa-codes/VouchBot</code></td></tr>
+      <tr><td><code>BRANCH</code></td><td><code>main</code></td></tr>
+      <tr><td><code>JS_FILE</code></td><td><code>src/index.js</code></td></tr>
+      <tr><td>Extra packages</td><td>Leave empty. <code>npm install</code> runs by itself.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The <code>.env</code> file is not in GitHub, so create it in Wispbyte's file manager next to <code>package.json</code>. Restart the server after you change it, because it is only read at startup.</p>
+  <div class="note warn"><p><b>Keep the <code>data/</code> folder.</b> It holds the vouches, prices, panels and ticket claims. It is not in GitHub on purpose, so updates never overwrite it.</p></div>
+  <h3>Anywhere else</h3>
+  <p>The bot logs errors instead of crashing, but a host can still stop it. To restart it automatically, use pm2:</p>
+<pre><button class="copy" type="button" data-copy="pm2">Copy</button><code id="pm2">npm i -g pm2
+pm2 start src/index.js --name vouch-bot
+pm2 save</code></pre>
+</section>
+
+<section id="help">
+  <h2>Troubleshooting</h2>
+  <details><summary>Commands do not show up in Discord</summary>
+    <p>Re-invite the bot with the <code>applications.commands</code> scope, and restart it. Without <code>GUILD_ID</code>, new commands can take up to an hour. With it, they appear on restart. Reload Discord (Ctrl+R) if they still do not show.</p></details>
+  <details><summary>The bot says "Only the owner can use this command"</summary>
+    <p>Only the user in <code>VOUCH_TARGET_ID</code> and anyone with <code>COMMAND_ROLE_ID</code> can use owner commands. Check that the ID is yours and that the role ID is the role, not the server.</p></details>
+  <details><summary>Nothing happens when I post in a schematic channel</summary>
+    <ul class="sp">
+      <li>Set <code>MESSAGE_CONTENT_INTENT=true</code>, switch the intent on in the Developer Portal and restart.</li>
+      <li>Run <code>/schematicchannel list</code> or <code>/boosterchannel list</code> to confirm the channel was added.</li>
+      <li>Post as the owner or someone with the command role, with the files in the <b>same message</b>.</li>
+      <li>Give the bot View Channel, Send Messages, Attach Files and Manage Messages there.</li>
+    </ul></details>
+  <details><summary>The bot fails to log in</summary>
+    <p>The token is wrong or was reset (Bot tab, then Reset Token), or <code>MESSAGE_CONTENT_INTENT=true</code> is set while the intent is off in the Developer Portal.</p></details>
+  <details><summary>A vouch number was skipped</summary>
+    <p>A vouch post was probably deleted by hand, so the bot still counts it. Run <code>/vouchremove</code> with that Total number. It works even if the post is already gone, and it moves the later vouches down.</p></details>
+  <details><summary>/vouchremove says it could not edit a post</summary>
+    <p>The message under each post shows the reason. "Missing Access" or "Missing Permissions" means the bot needs View Channel and Read Message History in that channel. "Unknown Message" means the post is gone. After you fix it, run <code>/vouchfix</code>.</p></details>
+  <details><summary>The price panel will not post</summary>
+    <p>The bot needs View Channel, Send Messages and Embed Links in that channel.</p></details>
+  <details><summary>A schematic emoji shows as text</summary>
+    <p>The bot must be in the server that owns the emoji, and needs Use External Emojis in the channel. You can swap the emoji with the <code>SCHEMATIC_EMOJI_...</code> settings.</p></details>
+  <details><summary>"Node is too old"</summary>
+    <p>Install Node 18.17 or newer.</p></details>
+
+  <h3>Project layout</h3>
+<pre><code>src/
+  index.js          startup, command registration, interaction routing
+  config.js         reads .env
+  owner.js          owner (+ optional role) permission check
+  post.js           publishes vouches to channels
+  renumber.js       edits vouch posts after a removal
+  store.js          JSON data storage (data/vouches.json)
+  tickets.js        ticket panels, forms and buttons
+  priceboard.js     price panel
+  summaryboard.js   live summary panel
+  calc.js           /spawnerbuy and /spawnersell
+  utils.js          price parsing and number formatting
+  schematics.js     schematic and booster channel posting
+  litematic.js      reads build size from .litematic files
+  commands/         one file per slash command</code></pre>
+</section>
+
+</main>
+</div>
+
+<footer>
+  <p style="margin:0 auto">Donut Vouch Bot is open source. <a href="https://github.com/lonaMisa-codes/VouchBot">View the code on GitHub</a>.</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* hero: the example card shows a vouch being removed, once */
+  (function () {
+    var k = $("#n-kind"), t = $("#n-total"), note = $("#dc-note");
+    if (reduce) return;
+    k.textContent = "12"; t.textContent = "141";
+    note.textContent = "Example of a vouch card. The owner removes one vouch...";
+    setTimeout(function () {
+      k.textContent = "11"; t.textContent = "140";
+      k.classList.add("moved"); t.classList.add("moved");
+      note.textContent = "...and every later vouch moves down by one. The bot edits those posts for you.";
+      setTimeout(function () { k.classList.remove("moved"); t.classList.remove("moved"); }, 1800);
+    }, 2200);
+  })();
+
+  /* table of contents highlight */
+  var links = $$("#toc-list a");
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+  var secs = Object.keys(map).map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  function mark() {
+    var cur = secs[0], y = window.scrollY + 140;
+    secs.forEach(function (s) { if (s.offsetTop <= y) cur = s; });
+    links.forEach(function (a) { a.removeAttribute("aria-current"); });
+    if (cur) {
+      var a = map[cur.id];
+      a.setAttribute("aria-current", "true");
+      var box = a.parentNode.parentNode.parentNode;
+      if (box.scrollWidth > box.clientWidth) box.scrollLeft = a.offsetLeft - 20;
+    }
+  }
+  window.addEventListener("scroll", mark, { passive: true }); mark();
+
+  /* command search and filter */
+  var rows = $$("#cmd-table tbody tr"), q = $("#cmd-q"), count = $("#cmd-count"), empty = $("#cmd-empty");
+  var filter = "all";
+  function apply() {
+    var term = q.value.trim().toLowerCase(), n = 0;
+    rows.forEach(function (r) {
+      var ok = (filter === "all" || r.getAttribute("data-a") === filter) && (!term || r.textContent.toLowerCase().indexOf(term) !== -1);
+      r.hidden = !ok; if (ok) n++;
+    });
+    count.textContent = n + (n === 1 ? " command" : " commands");
+    empty.hidden = n !== 0;
+  }
+  q.addEventListener("input", apply);
+  $$(".seg [data-f]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filter = b.getAttribute("data-f");
+      $$(".seg [data-f]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      apply();
+    });
+  });
+  apply();
+
+  /* calculator: same maths as the bot's utils.js */
+  var UNITS = { k: 1e3, m: 1e6, b: 1e9, t: 1e12 }, SCALES = [[1e12, "t"], [1e9, "b"], [1e6, "m"], [1e3, "k"]];
+  function parsePrice(s) {
+    var m = String(s).trim().toLowerCase().replace(/[$,\s]/g, "").match(/^(\d+(?:\.\d+)?)([kmbt])?$/);
+    if (!m) return null;
+    var v = Math.round(parseFloat(m[1]) * (UNITS[m[2]] || 1));
+    return isFinite(v) && v > 0 ? v : null;
+  }
+  function short(n) {
+    for (var i = 0; i < SCALES.length; i++) if (n >= SCALES[i][0]) return (n / SCALES[i][0]).toFixed(2).replace(/\.?0+$/, "") + SCALES[i][1];
+    return String(n);
+  }
+  function money(n) { var f = n.toLocaleString("en-US"); return n >= 1000 ? "(" + short(n) + ") " + f : f; }
+  function stacks(n) { var s = Math.floor(n / 64), r = n % 64; if (!s) return String(n); return s + " stack" + (s === 1 ? "" : "s") + (r ? " + " + r : ""); }
+  var side = "buy";
+  function calc() {
+    var amt = parseInt($("#c-amt").value, 10), each = parsePrice($("#c-price").value);
+    var okA = amt >= 1 && amt <= 10000000;
+    $("#o-amt").textContent = okA ? amt.toLocaleString("en-US") + " spawners (" + stacks(amt) + ")" : "Enter 1 to 10,000,000";
+    $("#o-each").textContent = each ? money(each) : "Try 16.2m or 250k";
+    $("#o-total").textContent = okA && each ? money(amt * each) : "-";
+  }
+  $$("#calc [data-side]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      side = b.getAttribute("data-side");
+      $$("#calc [data-side]").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      $("#c-price").value = side === "buy" ? "16.2m" : "15.3m"; calc();
+    });
+  });
+  $("#c-amt").addEventListener("input", calc); $("#c-price").addEventListener("input", calc); calc();
+
+  /* invite link builder */
+  var inv = $("#invite-url");
+  $("#app-id").addEventListener("input", function () {
+    var id = this.value.replace(/\D/g, "");
+    inv.textContent = "https://discord.com/oauth2/authorize?client_id=" + (id || "YOUR_APP_ID") + "&permissions=257040&scope=bot%20applications.commands";
+  });
+
+  /* copy buttons */
+  $$(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var el = document.getElementById(b.getAttribute("data-copy")), text = el.textContent;
+      function done() { var o = b.textContent; b.textContent = "Copied"; setTimeout(function () { b.textContent = o; }, 1400); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () {});
+      else { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); try { document.execCommand("copy"); done(); } catch (e) {} s.removeAllRanges(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
