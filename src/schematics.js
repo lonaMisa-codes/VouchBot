@@ -18,11 +18,7 @@ const { describeSize } = require('./litematic');
 
 const E = config.schematic.emojis;
 const WARNING = 'Taking this schematic and reposting it in your own server without credit or permission will result in removal of access, scammer roles across partnered servers, and possible blacklist.';
-// The link is wrapped in <> so Discord does not show an invite panel under the post
-const boosterNote = () => {
-  const where = config.schematic.boostLink ? `[TobVi Discord Server](<${config.schematic.boostLink}>)` : 'the TobVi Discord Server';
-  return `To access any of these booster schematics, you will need to boost ${where}, as it's the only way to get them.`;
-};
+const BOOSTER_NOTE = "To access any of these booster schematics, you will need to boost the TobVi Discord Server, as it's the only way to get them.";
 
 const KINDS = {
   posting: { key: 'schemChannels', env: () => config.schematic.channels },
@@ -100,7 +96,7 @@ function buildText({ name, tag, owners, size, booster = false }) {
     '',
     `__***BUILD NUMBER: ${tag}***__`,
     `_**Size =**_ ${size}`,
-    `*${booster ? boosterNote() : WARNING}*`,
+    `*${booster ? BOOSTER_NOTE : WARNING}*`,
     ` Original Creator: ${owners.join(' & ')}`,
   ].join('\n');
 }
