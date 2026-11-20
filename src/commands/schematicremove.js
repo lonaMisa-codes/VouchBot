@@ -7,7 +7,7 @@ const schematics = require('../schematics');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('schematicremove')
-    .setDescription('Owner: remove a posted schematic (normal or booster); later builds with the same prefix move down by one')
+    .setDescription('Owner: remove a posted schematic; later builds with the same prefix move down by one')
     .setDMPermission(false)
     .addStringOption((o) => o.setName('build').setDescription('The build number to remove, e.g. B3 or BB1').setRequired(true).setMaxLength(10)),
 
